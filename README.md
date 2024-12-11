@@ -5,3 +5,4 @@
 ## Навигация
 
 - [Ресёрч-док](docs/research-doc.md)
+- [Диаграмма юз-кейсов](docs/use-case-diagram.jpg)
