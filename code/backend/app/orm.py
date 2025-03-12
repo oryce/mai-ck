@@ -1,12 +1,9 @@
 from peewee import *
-from datetime import date
 
 db = PostgresqlDatabase('ck_db', user='postgres', password='123456')
 
 
 class BaseModel(Model):
-    """A base model that will use our Postgresql database"""
-
     class Meta:
         database = db
 
