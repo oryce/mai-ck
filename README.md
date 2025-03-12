@@ -6,6 +6,7 @@
 
 ## Навигация
 
+- [Диаграмма БД](docs/diagram-database.png) 
 - [Диаграмма компонентов](docs/diagram-component.png)
 - [Диаграмма контекстов](docs/diagram-context.jpg)
 - [Диаграмма юз-кейсов](docs/diagram-use-cases.jpg)

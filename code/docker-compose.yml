@@ -1,0 +1,21 @@
+networks:
+  internal:
+
+services:
+  backend:
+    build: backend
+    restart: unless-stopped
+    ports:
+      - 8000:8000
+    networks:
+      - internal
+
+  frontend:
+    build:
+      context: frontend
+      dockerfile: prod.dockerfile
+    restart: unless-stopped
+    ports:
+      - 3000:3000 
+    networks:
+      - internal
