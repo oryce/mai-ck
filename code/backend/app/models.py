@@ -1,6 +1,9 @@
 from peewee import *
+import configparser
 
-db = PostgresqlDatabase('ck_db', user='postgres', password='123456')
+config = configparser.ConfigParser()
+config.read('config.ini', encoding='utf-8')
+db = PostgresqlDatabase('ck_db', user=config.get('db', 'user'), password=config.get('db', 'password'))
 
 
 class BaseModel(Model):
