@@ -3,7 +3,7 @@ import configparser
 
 config = configparser.ConfigParser()
 config.read('config.ini', encoding='utf-8')
-db = PostgresqlDatabase('ck_db', user=config.get('db', 'user'), password=config.get('db', 'password'))
+db = PostgresqlDatabase(config.get('db', 'dbname'), user=config.get('db', 'user'), password=config.get('db', 'password'))
 
 
 class BaseModel(Model):
