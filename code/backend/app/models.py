@@ -1,9 +1,17 @@
 from peewee import *
-import configparser
+from fastapi import FastAPI
+from pydantic_settings import BaseSettings
 
-config = configparser.ConfigParser()
-config.read('config.ini', encoding='utf-8')
-db = PostgresqlDatabase(config.get('db', 'dbname'), user=config.get('db', 'user'), password=config.get('db', 'password'))
+
+class Settings(BaseSettings):
+    dbname: str = 'ck_db'
+    user: str = 'postgres'
+    password: str = '123456'
+
+
+settings = Settings()
+db = PostgresqlDatabase(settings.dbname, user=settings.user,
+                        password=settings.password)
 
 
 class BaseModel(Model):
