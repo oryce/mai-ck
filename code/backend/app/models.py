@@ -4,9 +4,9 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    dbname: str = 'ck_db'
-    user: str = 'postgres'
-    password: str = '123456'
+    db_name: str
+    db_user: str
+    password: str
 
 
 settings = Settings()
