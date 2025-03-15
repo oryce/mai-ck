@@ -4,14 +4,14 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    db_name: str
-    db_user: str
-    db_password: str
+    db_name: str = ''
+    db_user: str = ''
+    db_password: str = ''
 
 
 settings = Settings()
-db = PostgresqlDatabase(settings.dbname, user=settings.user,
-                        password=settings.password)
+db = PostgresqlDatabase(settings.db_name, user=settings.db_user,
+                        password=settings.db_password)
 
 
 class BaseModel(Model):
