@@ -1,5 +1,5 @@
-from app.models.document import Document
-from fastapi import APIRouter, HTTPException, status, Query
+from app.models.document import Document, TaskStatusResponse, TaskIdResponse
+from fastapi import APIRouter, HTTPException, status, Query, BackgroundTasks
 from typing import List
 from typing import Optional
 
@@ -35,4 +35,16 @@ async def delete_document(document_id: int):
 
 @router.get("/documents", response_model=List[Document], summary="Получить документы по тегу")
 async def read_documents_by_tag(tag: Optional[str] = None):
+    ...
+
+@router.post("/documents/upload", response_model=TaskIdResponse, summary="Загрузить документ асинхронно")
+async def upload_document(background_tasks: BackgroundTasks):
+    ...
+
+@router.get("/tasks/{task_id}", response_model=TaskStatusResponse, summary="Получить статус задачи")
+async def get_task_status(task_id: str):
+    ...
+
+@router.get("/tasks", response_model=List[TaskStatusResponse], summary="Получить статусы всех задач")
+async def get_all_tasks():
     ...

@@ -54,3 +54,13 @@ class Document(BaseModel):
                 "typeId": 2
             }
         }
+
+
+class TaskStatusResponse(BaseModel):
+    taskId: str = Field(description="Id асинхронно выполняемой задачи")
+    status: str = Field(desctiption="uploading | processing | complete")
+    progress: int = Field(description="Прогресс выполнения задачи", ge=0, le=100)
+
+
+class TaskIdResponse(BaseModel):
+    taskId: str = Field(description="Id асинхронно выполняемой задачи")
