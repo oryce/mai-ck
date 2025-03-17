@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field, validator
 from datetime import datetime
 from typing import Optional
 
+
 class Document(BaseModel):
     id: int = Field(
         ...,
@@ -57,10 +58,16 @@ class Document(BaseModel):
 
 
 class TaskStatusResponse(BaseModel):
-    taskId: str = Field(description="Id асинхронно выполняемой задачи")
+    task_id: str = Field(description="Id асинхронно выполняемой задачи")
     status: str = Field(desctiption="uploading | processing | complete")
     progress: int = Field(description="Прогресс выполнения задачи", ge=0, le=100)
 
 
 class TaskIdResponse(BaseModel):
-    taskId: str = Field(description="Id асинхронно выполняемой задачи")
+    task_id: str = Field(description="Id асинхронно выполняемой задачи")
+
+
+class Tag(BaseModel):
+    id : str = Field(description="Id тэга в системе")
+    name : str = Field(description="Имя тэга")
+    auto_tag : bool = Field(description="Был ли тэг задан автоматически")
