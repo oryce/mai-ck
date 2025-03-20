@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
 import { clsx } from 'clsx'
+import { useSearchParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import * as Headless from '@headlessui/react'
 import {
   ArrowDownTrayIcon,
@@ -13,7 +14,8 @@ import {
 } from '@heroicons/react/20/solid'
 import { CalendarDaysIcon } from '@heroicons/react/16/solid'
 
-import { Badge } from '@/components/badge'
+import { getDocuments } from '@/api/documents'
+import { Badge, RandomBadge } from '@/components/badge'
 import { Button } from '@/components/button'
 import { Divider } from '@/components/divider'
 import { Heading } from '@/components/heading'
@@ -90,21 +92,34 @@ function DocumentSkeleton({ ...props }) {
   )
 }
 
-function Document({ ...props }) {
+function Document({ document, ...props }) {
+  const { name, createDate, type, tags } = document
+
+  const formattedDate = new Intl.DateTimeFormat('ru-RU', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date(createDate))
+
   return (
-    <div className="w-[250px] rounded-md shadow-xs ring-1 ring-zinc-950/5 md:w-[215px] dark:ring-white/10">
+    <div
+      className={clsx(
+        'relative w-[250px] rounded-md shadow-xs md:w-[215px]',
+        'ring-1 ring-zinc-950/5 dark:ring-white/10'
+      )}
+    >
       <div
         className='h-[300px] rounded-t-md bg-[url("/pdf-placeholder.jpg")] bg-cover bg-center md:h-[270px]'
         role="presentation"
       />
       <div className="p-2">
         <Text>
-          <Strong>Document title</Strong>
+          <Strong>{name}</Strong>
         </Text>
         <Text>
-          <Badge color="indigo">Накладная</Badge>
+          <Badge color="indigo">{type}</Badge>
           <span className="ml-2">
-            <CalendarDaysIcon className="inline size-4" /> 18.03.2025
+            <CalendarDaysIcon className="inline size-4" /> {formattedDate}
           </span>
         </Text>
         <div className="mt-1.5 flex justify-around gap-2">
@@ -119,13 +134,109 @@ function Document({ ...props }) {
           </Button>
         </div>
       </div>
+      <div className="absolute top-1 right-1 flex flex-col items-end gap-0.5">
+        {tags.map((tag, i) => (
+          <RandomBadge key={i}>{tag}</RandomBadge>
+        ))}
+      </div>
     </div>
   )
 }
 
+function Paginator({ currentPage, pageInfo, className, ...props }) {
+  const { first, last, prev, next, pages } = pageInfo
+
+  const getPageNumbers = () => {
+    const minPages = 7
+
+    if (pages <= minPages) {
+      // Show pages fully.
+      return [...Array(pages)].map((_, i) => i + 1)
+    }
+
+    let pageList = []
+
+    // Always show the first page.
+    pageList.push(first)
+
+    const startPage = Math.max(2, currentPage - 1)
+    const endPage = Math.min(pages - 1, currentPage + 1)
+
+    // Add a gap if we're away from the first page.
+    if (startPage > 2) {
+      pages.push('...')
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i)
+    }
+
+    // Add a gap if we're away from the last page.
+    if (endPage < pages - 1) {
+      pages.push('...')
+    }
+
+    // Always show the last page.
+    pageList.push(last)
+
+    return pageList
+  }
+
+  const pageNumbers = getPageNumbers()
+
+  return (
+    <Pagination className={className}>
+      <PaginationPrevious href={prev && `?page=${prev}`}>
+        Назад
+      </PaginationPrevious>
+      <PaginationList>
+        {pageNumbers.map((page, i) =>
+          page === '...' ? (
+            <PaginationGap key={i} />
+          ) : (
+            <PaginationPage
+              key={i}
+              href={`?page=${page}`}
+              current={page === currentPage}
+            >
+              {page}
+            </PaginationPage>
+          )
+        )}
+      </PaginationList>
+      <PaginationNext href={next && `?page=${next}`}>Вперёд</PaginationNext>
+    </Pagination>
+  )
+}
+
 export default function Documents() {
+  const [documents, setDocuments] = useState([])
+  const [isLoading, setLoading] = useState(false)
   const [selectedSort, setSelectedSort] = useState('newest-first')
   const [selectedTags, setSelectedTags] = useState([])
+  const [pageInfo, setPageInfo] = useState(null)
+
+  const params = useSearchParams()
+  const currentPage = parseInt(params.get('page')) || 1
+
+  useEffect(() => {
+    setLoading(true)
+
+    getDocuments({
+      page: currentPage,
+      perPage: 10,
+      sort: selectedSort,
+      tags: selectedTags,
+    })
+      .then((res) => {
+        const { data: documents, ...pageInfo } = res
+
+        setDocuments(documents)
+        setPageInfo(pageInfo)
+        setLoading(false)
+      })
+      .catch(() => alert('Cannot load documents'))
+  }, [currentPage, selectedSort, selectedTags])
 
   return (
     <>
@@ -149,25 +260,19 @@ export default function Documents() {
           'grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
         )}
       >
-        {[...Array(10)].map((_, i) => (
-          <Document key={i} />
-        ))}
+        {isLoading
+          ? [...Array(10)].map((_, i) => <DocumentSkeleton key={i} />)
+          : documents.map((document, i) => (
+              <Document key={i} document={document} />
+            ))}
       </section>
-      <Pagination className="mt-6">
-        <PaginationPrevious>Назад</PaginationPrevious>
-        <PaginationList>
-          <PaginationPage href="?page=1" current>
-            1
-          </PaginationPage>
-          <PaginationPage href="?page=2">2</PaginationPage>
-          <PaginationPage href="?page=3">3</PaginationPage>
-          <PaginationPage href="?page=4">4</PaginationPage>
-          <PaginationGap />
-          <PaginationPage href="?page=4">8</PaginationPage>
-          <PaginationPage href="?page=4">9</PaginationPage>
-        </PaginationList>
-        <PaginationNext href="?page=2">Вперёд</PaginationNext>
-      </Pagination>
+      {pageInfo && (
+        <Paginator
+          className="mt-6"
+          currentPage={currentPage}
+          pageInfo={pageInfo}
+        />
+      )}
     </>
   )
 }
