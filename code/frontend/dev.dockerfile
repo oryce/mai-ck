@@ -4,6 +4,8 @@ WORKDIR /app
 
 COPY public ./public
 COPY src ./src
+COPY jsconfig.json .
+COPY mock-db.json .
 COPY next.config.mjs .
 COPY package.json .
 COPY package-lock.json .

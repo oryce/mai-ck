@@ -109,7 +109,7 @@ function Document({ document, ...props }) {
       )}
     >
       <div
-        className='h-[300px] rounded-t-md bg-[url("/pdf-placeholder.jpg")] bg-cover bg-center md:h-[270px]'
+        className='h-[300px] rounded-t-md bg-[url(/pdf-placeholder.jpg)] bg-cover bg-center md:h-[270px]'
         role="presentation"
       />
       <div className="p-2">

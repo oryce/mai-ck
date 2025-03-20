@@ -4,6 +4,8 @@ import React, { forwardRef } from 'react'
 import { TouchTarget } from './button'
 import { Link } from './link'
 
+import { hashCode } from '@/lib/hash'
+
 const colors = {
   red: 'bg-red-500/15 text-red-700 group-data-hover:bg-red-500/25 dark:bg-red-500/10 dark:text-red-400 dark:group-data-hover:bg-red-500/20',
   orange:
@@ -71,3 +73,16 @@ export const BadgeButton = forwardRef(function BadgeButton(
     </Headless.Button>
   )
 })
+
+export function RandomBadge({ className, children, ...props }) {
+  // Hash the text content to "generate" a "random" color.
+  const textHash = hashCode(children.toString())
+  const colorKeys = Object.keys(colors)
+  const color = colorKeys[textHash % colorKeys.length]
+
+  return (
+    <Badge className={className} color={color} {...props}>
+      {children}
+    </Badge>
+  )
+} 

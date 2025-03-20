@@ -1,0 +1,27 @@
+networks:
+  internal:
+
+services:
+  json-server:
+    build:
+      context: frontend
+      dockerfile: dev.dockerfile
+    command: npm run json-server 
+    restart: unless-stopped
+    ports:
+      - 8000:8000
+    networks:
+      - internal
+
+  frontend:
+    build:
+      context: frontend
+      dockerfile: dev.dockerfile
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_BASE: http://json-server:8000
+      NEXT_PUBLIC_JSON_SERVER: 1
+    ports:
+      - 3000:3000 
+    networks:
+      - internal

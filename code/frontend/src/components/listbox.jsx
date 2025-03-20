@@ -4,9 +4,9 @@ import * as Headless from '@headlessui/react'
 import clsx from 'clsx'
 import { Fragment } from 'react'
 
-export function Listbox({ className, placeholder, autoFocus, 'aria-label': ariaLabel, children: options, ...props }) {
+export function Listbox({ className, placeholder, autoFocus, 'aria-label': ariaLabel, multiple, children: options, ...props }) {
   return (
-    <Headless.Listbox {...props} multiple={false}>
+    <Headless.Listbox {...props} multiple={multiple}>
       <Headless.ListboxButton
         autoFocus={autoFocus}
         data-slot="control"
@@ -48,6 +48,8 @@ export function Listbox({ className, placeholder, autoFocus, 'aria-label': ariaL
             'group-data-invalid:border-red-500 group-data-hover:group-data-invalid:border-red-500 dark:group-data-invalid:border-red-600 dark:data-hover:group-data-invalid:border-red-600',
             // Disabled state
             'group-data-disabled:border-zinc-950/20 group-data-disabled:opacity-100 dark:group-data-disabled:border-white/15 dark:group-data-disabled:bg-white/[2.5%] dark:group-data-disabled:data-hover:border-white/15',
+            // (~oryce, 17.03.25): Support multiple items
+            'overflow-hidden text-ellipsis',
           ])}
         />
         <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
@@ -62,29 +64,35 @@ export function Listbox({ className, placeholder, autoFocus, 'aria-label': ariaL
           </svg>
         </span>
       </Headless.ListboxButton>
-      <Headless.ListboxOptions
-        transition
-        anchor="selection start"
-        className={clsx(
-          // Anchor positioning
-          '[--anchor-offset:-1.625rem] [--anchor-padding:--spacing(4)] sm:[--anchor-offset:-1.375rem]',
-          // Base styles
-          'isolate w-max min-w-[calc(var(--button-width)+1.75rem)] scroll-py-1 rounded-xl p-1 select-none',
-          // Invisible border that is only visible in `forced-colors` mode for accessibility purposes
-          'outline outline-transparent focus:outline-hidden',
-          // Handle scrolling when menu won't fit in viewport
-          'overflow-y-scroll overscroll-contain',
-          // Popover background
-          'bg-white/75 backdrop-blur-xl dark:bg-zinc-800/75',
-          // Shadows
-          'ring-1 shadow-lg ring-zinc-950/10 dark:ring-white/10 dark:ring-inset',
-          // Transitions
-          'transition-opacity duration-100 ease-in data-closed:data-leave:opacity-0 data-transition:pointer-events-none'
-        )}
-      >
-        {options}
-      </Headless.ListboxOptions>
+      <ListboxOptions options={options} />
     </Headless.Listbox>
+  )
+}
+
+export function ListboxOptions({ children: options, anchor = 'selection start', ...props }) {
+  return (
+    <Headless.ListboxOptions
+      transition
+      anchor={anchor}
+      className={clsx(
+        // Anchor positioning
+        '[--anchor-offset:-1.625rem] [--anchor-padding:--spacing(4)] sm:[--anchor-offset:-1.375rem]',
+        // Base styles
+        'isolate w-max min-w-[calc(var(--button-width)+1.75rem)] scroll-py-1 rounded-xl p-1 select-none',
+        // Invisible border that is only visible in `forced-colors` mode for accessibility purposes
+        'outline outline-transparent focus:outline-hidden',
+        // Handle scrolling when menu won't fit in viewport
+        'overflow-y-scroll overscroll-contain',
+        // Popover background
+        'bg-white/75 backdrop-blur-xl dark:bg-zinc-800/75',
+        // Shadows
+        'ring-1 shadow-lg ring-zinc-950/10 dark:ring-white/10 dark:ring-inset',
+        // Transitions
+        'transition-opacity duration-100 ease-in data-closed:data-leave:opacity-0 data-transition:pointer-events-none'
+      )}
+    >
+      {options}
+    </Headless.ListboxOptions>
   )
 }
 
@@ -104,7 +112,7 @@ export function ListboxOption({ children, className, ...props }) {
     <Headless.ListboxOption as={Fragment} {...props}>
       {({ selectedOption }) => {
         if (selectedOption) {
-          return <div className={clsx(className, sharedClasses)}>{children}</div>
+          return <span className={clsx(className, sharedClasses, 'inline')}>{children}</span>
         }
 
         return (
