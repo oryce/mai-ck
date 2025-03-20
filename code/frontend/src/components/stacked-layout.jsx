@@ -44,7 +44,7 @@ function MobileSidebar({ open, close, children }) {
   )
 }
 
-export function StackedLayout({ navbar, sidebar, children }) {
+export function StackedLayout({ navbar, sidebar, children, mobileSidebar = true }) {
   let [showSidebar, setShowSidebar] = useState(false)
 
   return (
@@ -56,11 +56,13 @@ export function StackedLayout({ navbar, sidebar, children }) {
 
       {/* Navbar */}
       <header className="flex items-center px-4">
-        <div className="py-2.5 lg:hidden">
-          <NavbarItem onClick={() => setShowSidebar(true)} aria-label="Open navigation">
-            <OpenMenuIcon />
-          </NavbarItem>
-        </div>
+        {mobileSidebar && (
+          <div className="py-2.5 lg:hidden">
+            <NavbarItem onClick={() => setShowSidebar(true)} aria-label="Open navigation">
+              <OpenMenuIcon />
+            </NavbarItem>
+          </div> 
+        )}
         <div className="min-w-0 flex-1">{navbar}</div>
       </header>
 
