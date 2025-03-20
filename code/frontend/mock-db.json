@@ -1,0 +1,92 @@
+{
+  "documents": [
+    {
+      "id": 1,
+      "name": "Mock document",
+      "uploadDate": "2025-10-01T12:00:00Z",
+      "createDate": "2025-09-30T08:00:00Z",
+      "type": "Накладная",
+      "tags": ["Подпись", "Печать"]
+    },
+    {
+      "id": 2,
+      "name": "Mock document",
+      "uploadDate": "2025-10-01T12:00:00Z",
+      "createDate": "2025-09-30T08:00:00Z",
+      "type": "Накладная",
+      "tags": ["Подпись", "Печать"]
+    },
+    {
+      "id": 3,
+      "name": "Mock document",
+      "uploadDate": "2025-10-01T12:00:00Z",
+      "createDate": "2025-09-30T08:00:00Z",
+      "type": "Накладная",
+      "tags": ["Подпись", "Печать"]
+    },
+    {
+      "id": 4,
+      "name": "Mock document",
+      "uploadDate": "2025-10-01T12:00:00Z",
+      "createDate": "2025-09-30T08:00:00Z",
+      "type": "Накладная",
+      "tags": ["Подпись", "Печать"]
+    },
+    {
+      "id": 5,
+      "name": "Mock document",
+      "uploadDate": "2025-10-01T12:00:00Z",
+      "createDate": "2025-09-30T08:00:00Z",
+      "type": "Накладная",
+      "tags": ["Подпись", "Печать"]
+    },
+    {
+      "id": 6,
+      "name": "Mock document",
+      "uploadDate": "2025-10-01T12:00:00Z",
+      "createDate": "2025-09-30T08:00:00Z",
+      "type": "Накладная",
+      "tags": ["Подпись", "Печать"]
+    },
+    {
+      "id": 7,
+      "name": "Mock document",
+      "uploadDate": "2025-10-01T12:00:00Z",
+      "createDate": "2025-09-30T08:00:00Z",
+      "type": "Накладная",
+      "tags": ["Подпись", "Печать"]
+    },
+    {
+      "id": 8,
+      "name": "Mock document",
+      "uploadDate": "2025-10-01T12:00:00Z",
+      "createDate": "2025-09-30T08:00:00Z",
+      "type": "Накладная",
+      "tags": ["Подпись", "Печать"]
+    },
+    {
+      "id": 9,
+      "name": "Mock document",
+      "uploadDate": "2025-10-01T12:00:00Z",
+      "createDate": "2025-09-30T08:00:00Z",
+      "type": "Накладная",
+      "tags": ["Подпись", "Печать"]
+    },
+    {
+      "id": 10,
+      "name": "Mock document",
+      "uploadDate": "2025-10-01T12:00:00Z",
+      "createDate": "2025-09-30T08:00:00Z",
+      "type": "Накладная",
+      "tags": ["Подпись", "Печать"]
+    },
+    {
+      "id": 11,
+      "name": "Mock document",
+      "uploadDate": "2025-10-01T12:00:00Z",
+      "createDate": "2025-09-30T08:00:00Z",
+      "type": "Накладная",
+      "tags": ["Подпись", "Печать"]
+    }
+  ]
+}
