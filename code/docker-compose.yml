@@ -1,21 +1,53 @@
 networks:
   internal:
 
+volumes:
+  pg_data:
+
 services:
   backend:
     build: backend
     restart: unless-stopped
+
+    env_file: config/backend/.env
+
     ports:
-      - 8000:8000
+      - 8000:80
     networks:
       - internal
+
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   frontend:
     build:
       context: frontend
       dockerfile: prod.dockerfile
     restart: unless-stopped
+
     ports:
       - 3000:3000 
     networks:
       - internal
+
+  postgres:
+    image: postgres
+    restart: unless-stopped
+
+    env_file: config/postgres/.env
+    environment:
+      PGDATA: /var/lib/postgresql/data
+
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./config/postgres/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
+
+    networks:
+      - internal
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
