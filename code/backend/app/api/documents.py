@@ -32,14 +32,10 @@ async def get_documents(
 async def get_document(document_id: int): ...
 
 
-@router.post("/documents/create", response_model=Document, summary="Добавить документ")
-async def create_document(document: Document): ...
-
-
 @router.post(
     "/documents/upload",
     response_model=TaskIdResponse,
-    summary="Загрузить документ асинхронно",
+    summary="Загрузить документ",
 )
 async def upload_document(background_tasks: BackgroundTasks): ...
 
@@ -48,14 +44,6 @@ async def upload_document(background_tasks: BackgroundTasks): ...
     "/documents/{document_id}", response_model=Document, summary="Изменить документ"
 )
 async def update_document(document_id: int, document: Document): ...
-
-
-@router.put(
-    "/documents/{document_id}",
-    response_model=Document,
-    summary="Полностью обновить документ",
-)
-async def replace_document(document_id: int, document: Document): ...
 
 
 @router.delete("/documents/{document_id}", summary="Удалить документ")

@@ -67,4 +67,4 @@ class TaskIdResponse(BaseModel):
 class Tag(BaseModel):
     id: str = Field(description="ID тега в системе")
     name: str = Field(description="Имя тега")
-    auto_tag: bool = Field(description="Был ли тег задан автоматически")
+    auto_tag: bool = Field(description="Задаётся ли тег автоматически")
