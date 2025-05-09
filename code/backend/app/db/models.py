@@ -57,4 +57,8 @@ class Tag(BaseModel):
 
 class DocumentTags(BaseModel):
     tagId = ForeignKeyField(Tag, to_field="id", db_column="tagId")
-    documentId = ForeignKeyField(Document, to_field="id", db_column="documentId")
+    documentId = ForeignKeyField(Document, to_field="id", db_column="document_id")
+
+
+class TagRequest(BaseModel):
+    tagId: int
