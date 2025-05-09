@@ -1,3 +1,5 @@
+from typing import Optional
+
 from peewee import (
     AutoField,
     BooleanField,
@@ -8,7 +10,8 @@ from peewee import (
     TextField,
 )
 
-from . import db
+from app import db
+from pydantic import BaseModel as BaseModelPydantic
 
 
 class BaseModel(Model):
@@ -57,4 +60,19 @@ class Tag(BaseModel):
 
 class DocumentTags(BaseModel):
     tagId = ForeignKeyField(Tag, to_field="id", db_column="tagId")
-    documentId = ForeignKeyField(Document, to_field="id", db_column="documentId")
+    documentId = ForeignKeyField(Document, to_field="id", db_column="document_id")
+
+
+class TagRequest(BaseModelPydantic):
+    tagId: int
+
+
+class TagCreate(BaseModelPydantic):
+    name: str
+    autoTag: Optional[bool] = False
+
+
+class TagResponse(BaseModelPydantic):
+    id: int
+    name: str
+    autoTag: bool
