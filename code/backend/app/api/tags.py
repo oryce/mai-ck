@@ -1,59 +1,61 @@
-from fastapi import APIRouter, HTTPException, Path, Depends, status
-from app.db.models import *
-from .schemas import Tag
-from peewee import DoesNotExist
-from typing import Optional, List
+from typing import List
+
+from app.db.models import DocumentModel, DocumentTagModel, TagModel
+from fastapi import APIRouter, HTTPException, status
+from peewee import IntegrityError
+
+from .schemas import AddTagRequest, CreateTagRequest, TagDto
 
 router = APIRouter(tags=["Работа с тегами"])
 
 
-@router.put('/document/{document_id}/tags', status_code=status.HTTP_201_CREATED)
-async def add_tag_to_document(
-        document_id: int,
-        tag_request: TagRequest
-):
-    tag_id = tag_request.tagId
-
-    try:
-        document = Document.get(Document.id == document_id)
-    except DoesNotExist:
+@router.post("/documents/{document_id}/tags", status_code=status.HTTP_201_CREATED)
+async def add_tag_to_document(document_id: int, tag_request: AddTagRequest):
+    document = DocumentModel.get_or_none(document_id)
+    if document is None:
         raise HTTPException(status_code=404, detail="Document not found")
 
-    try:
-        tag = Tag.get(Tag.id == tag_id)
-    except DoesNotExist:
+    tag = TagModel.get_or_none(tag_request.tag_id)
+    if tag is None:
         raise HTTPException(status_code=404, detail="Tag not found")
 
-    if DocumentTags.select().where(
-            DocumentTags.documentId == document_id, DocumentTags.tagId == tag_id
-    ).exists():
+    try:
+        DocumentTagModel.create(document=document, tag=tag)
+    except IntegrityError:
         raise HTTPException(status_code=400, detail="Tag already added to the document")
-
-    DocumentTags.create(documentId=document_id, tagId=tag_id)
 
     return {"message": "Tag added successfully"}
 
 
-@router.get("/tags", response_model=List[TagResponse], summary="Получить все теги")
+@router.get("/tags", response_model=List[TagDto], summary="Получить все теги")
 async def get_tags():
-    return list(Tag.select())
+    return list(map(TagDto.from_model, TagModel.select()))
 
 
-@router.put("/tags", response_model=TagResponse, status_code=status.HTTP_201_CREATED, summary="Создать тег")
-async def create_tag(tag: TagCreate):
-    if Tag.select().where(Tag.name == tag.name).exists():
-        raise HTTPException(status_code=400, detail="Tag with this name already exists")
-
-    new_tag = Tag.create(name=tag.name, autoTag=tag.autoTag)
-    return new_tag
-
-
-@router.delete("/tags/{tag_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Удалить тег")
-async def delete_tag(tag_id: int):
+@router.post(
+    "/tags",
+    response_model=TagDto,
+    status_code=status.HTTP_201_CREATED,
+    summary="Создать тег",
+)
+async def create_tag(tag: CreateTagRequest):
     try:
-        tag = Tag.get_by_id(tag_id)
-    except DoesNotExist:
+        new_tag = TagModel.create(name=tag.name, auto_tag=tag.auto_tag)
+    except IntegrityError:
+        raise HTTPException(status_code=400, detail="Tag already exists")
+
+    return TagDto.from_model(new_tag)
+
+
+@router.delete(
+    "/tags/{tag_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Удалить тег"
+)
+async def delete_tag(tag_id: int):
+    tag = TagModel.get_or_none(tag_id)
+
+    if tag is None:
         raise HTTPException(status_code=404, detail="Tag not found")
 
-    tag.delete_instance(recursive=True)  # удаляет также записи в DocumentTags
-    return None  # 204 No Content
+    tag.delete_instance(recursive=True)
+
+    return None
