@@ -2,14 +2,14 @@ from typing import Optional
 
 from fastapi import APIRouter, BackgroundTasks, Query
 
-from .schemas import Document, TaskIdResponse
+from .schemas import DocumentDto, TaskIdResponse
 
 router = APIRouter(tags=["Работа с документами"])
 
 
 @router.get(
     "/documents",
-    response_model=list[Document],
+    response_model=list[DocumentDto],
     summary="Получить документы с фильтрацией и сортировкой",
 )
 async def get_documents(
@@ -26,7 +26,7 @@ async def get_documents(
 
 @router.get(
     "/documents/{document_id}",
-    response_model=Document,
+    response_model=DocumentDto,
     summary="Получить один документ по id",
 )
 async def get_document(document_id: int): ...
@@ -41,9 +41,9 @@ async def upload_document(background_tasks: BackgroundTasks): ...
 
 
 @router.patch(
-    "/documents/{document_id}", response_model=Document, summary="Изменить документ"
+    "/documents/{document_id}", response_model=DocumentDto, summary="Изменить документ"
 )
-async def update_document(document_id: int, document: Document): ...
+async def update_document(document_id: int, document: DocumentDto): ...
 
 
 @router.delete("/documents/{document_id}", summary="Удалить документ")

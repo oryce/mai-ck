@@ -1,16 +1,19 @@
 from datetime import datetime
+from typing import Optional
 
+import app.db.models as db
 from pydantic import BaseModel, Field, field_validator
 
 
-class Document(BaseModel):
+class DocumentDto(BaseModel):
     id: int = Field(
         ..., description="Уникальный идентификатор документа в системе", example=1
     )
-    uploaderId: int = Field(
+    uploader_id: int = Field(
         ...,
         description="Идентификатор пользователя, загрузившего документ",
         example=123,
+        alias="uploaderId",
     )
     name: str = Field(
         ...,
@@ -19,19 +22,23 @@ class Document(BaseModel):
         max_length=30,
         example="Презентация на 17.03.25",
     )
-    uploadDate: datetime = Field(
+    upload_date: datetime = Field(
         ...,
         description="Дата и время загрузки документа в систему",
         example="2025-10-01T12:00:00Z",
+        alias="uploadDate",
     )
-    createDate: datetime = Field(
+    create_date: datetime = Field(
         ...,
         description="Дата и время создания документа",
         example="2025-09-30T08:00:00Z",
+        alias="createDate",
     )
-    typeId: int = Field(..., description="Идентификатор типа документа", example=2)
+    type_id: int = Field(
+        ..., description="Идентификатор типа документа", example=2, alias="typeId"
+    )
 
-    @field_validator("uploadDate", "createDate", mode="before")
+    @field_validator("upload_date", "create_date", mode="before")
     def parse_dates(cls, value):
         if isinstance(value, str):
             # Поддерживаем формат ISO с 'Z' (UTC)
@@ -55,16 +62,33 @@ class Document(BaseModel):
 
 
 class TaskStatusResponse(BaseModel):
-    task_id: str = Field(description="ID асинхронно-выполняемой задачи")
+    task_id: str = Field(description="ID асинхронно-выполняемой задачи", alias="taskId")
     status: str = Field(description="uploading | processing | complete")
     progress: int = Field(description="Прогресс выполнения задачи", ge=0, le=100)
 
 
 class TaskIdResponse(BaseModel):
-    task_id: str = Field(description="ID асинхронно-выполняемой задачи")
+    task_id: str = Field(description="ID асинхронно-выполняемой задачи", alias="taskId")
 
 
-class Tag(BaseModel):
-    id: str = Field(description="ID тега в системе")
+class TagDto(BaseModel):
+    id: int = Field(description="ID тега в системе")
     name: str = Field(description="Имя тега")
-    auto_tag: bool = Field(description="Задаётся ли тег автоматически")
+    auto_tag: bool = Field(description="Задаётся ли тег автоматически", alias="autoTag")
+
+    @staticmethod
+    def from_model(model: db.TagModel) -> "TagDto":
+        return TagDto(
+            id=int(model.id), name=str(model.name), autoTag=bool(model.auto_tag)
+        )
+
+
+class AddTagRequest(BaseModel):
+    tag_id: int = Field(description="ID тега", alias="tagId")
+
+
+class CreateTagRequest(BaseModel):
+    name: str = Field(description="Имя тега")
+    auto_tag: Optional[bool] = Field(
+        default=False, description="Задаётся ли тег автоматически", alias="autoTag"
+    )

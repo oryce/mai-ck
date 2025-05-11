@@ -2,13 +2,13 @@ from peewee import (
     AutoField,
     BooleanField,
     CharField,
+    CompositeKey,
     DateField,
     ForeignKeyField,
     Model,
-    TextField,
 )
 
-from . import db
+from app.db import db
 
 
 class BaseModel(Model):
@@ -16,45 +16,59 @@ class BaseModel(Model):
         database = db
 
 
-class User(BaseModel):
-    id = AutoField(primary_key=True)
+class UserModel(BaseModel):
+    id = AutoField()
     name = CharField(db_column="username")
 
     class Meta:
         db_table = "users"
 
 
-class Type(BaseModel):
-    id = AutoField(primary_key=True)
-    name = CharField()
+class DocumentTypeModel(BaseModel):
+    id = AutoField()
+    name = CharField(unique=True)
 
     class Meta:
         db_table = "types"
 
 
-class Document(BaseModel):
-    id = AutoField(primary_key=True)
-    uploaderId = ForeignKeyField(
-        User, to_field="id", db_column="uploaderId", backref="user"
-    )
-    name = TextField()
-    uploadDate = DateField()
-    creationDate = DateField()
-    typeId = ForeignKeyField(Type, to_field="id", db_column="typeId")
+class DocumentModel(BaseModel):
+    id = AutoField()
+    uploader = ForeignKeyField(UserModel, backref="documents")
+    name = CharField(max_length=255)
+    upload_date = DateField()
+    creation_date = DateField()
+    type = ForeignKeyField(DocumentTypeModel, backref="documents")
 
     class Meta:
         db_table = "documents"
 
 
-class Tag(BaseModel):
-    id = AutoField(primary_key=True)
-    name = CharField()
-    autoTag = BooleanField()
+class TagModel(BaseModel):
+    id = AutoField()
+    name = CharField(unique=True)
+    auto_tag = BooleanField()
 
     class Meta:
         db_table = "tags"
 
 
-class DocumentTags(BaseModel):
-    tagId = ForeignKeyField(Tag, to_field="id", db_column="tagId")
-    documentId = ForeignKeyField(Document, to_field="id", db_column="documentId")
+class DocumentTagModel(BaseModel):
+    document = ForeignKeyField(DocumentModel)
+    tag = ForeignKeyField(TagModel)
+
+    class Meta:
+        primary_key = CompositeKey("document", "tag")
+        db_table = "document_tags"
+
+
+def create_tables():
+    db.create_tables(
+        [
+            UserModel,
+            DocumentTypeModel,
+            DocumentModel,
+            TagModel,
+            DocumentTagModel,
+        ]
+    )

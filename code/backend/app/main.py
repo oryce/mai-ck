@@ -8,12 +8,13 @@ from app.api.tags import router as tags_router
 from app.api.tasks import router as tasks_router
 from app.config import Settings
 from app.db import init_db
+from app.db.models import create_tables
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Подключаемся к БД
     init_db()
+    create_tables()
 
     yield
 
