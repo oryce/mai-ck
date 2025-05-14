@@ -1,9 +1,12 @@
-import { Inter } from 'next/font/google'
+import Inter from 'next/font/local'
 import './globals.css'
 
 const interSans = Inter({
   variable: '--font-inter-sans',
-  subsets: ['latin', 'cyrillic'],
+  src: [
+    { path: './fonts/inter.ttf' },
+    { path: './fonts/inter-italic.ttf', style: 'italic'} 
+  ]
 })
 
 export const metadata = {
