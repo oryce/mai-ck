@@ -5,9 +5,11 @@ services:
   json-server:
     build:
       context: frontend
-      dockerfile: dev.dockerfile
-    command: npm run json-server 
+      dockerfile: json-server.dockerfile
+    command: -h 0.0.0.0 -p 8000 /app/mock-db.json
     restart: unless-stopped
+    volumes:
+      - ./frontend/mock-db.json:/app/mock-db.json:ro
     ports:
       - 8000:8000
     networks:
@@ -16,11 +18,10 @@ services:
   frontend:
     build:
       context: frontend
-      dockerfile: dev.dockerfile
+      args:
+        API_BASE: http://json-server:8000
+        JSON_SERVER: 1
     restart: unless-stopped
-    environment:
-      NEXT_PUBLIC_API_BASE: http://json-server:8000
-      NEXT_PUBLIC_JSON_SERVER: 1
     ports:
       - 3000:3000 
     networks:

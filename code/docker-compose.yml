@@ -23,7 +23,8 @@ services:
   frontend:
     build:
       context: frontend
-      dockerfile: prod.dockerfile
+      args:
+        API_BASE: http://backend
     restart: unless-stopped
 
     ports:
