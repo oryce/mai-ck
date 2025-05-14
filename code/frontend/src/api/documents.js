@@ -1,4 +1,3 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE
 const JSON_SERVER = process.env.NEXT_PUBLIC_JSON_SERVER
 
 import { queryParams } from '.'
@@ -13,7 +12,7 @@ export const getDocuments = ({ page = 1, perPage = 10, sort, tags }) => {
       }
     : { page, perPage, sort, tags: tags.join(',') }
 
-  return fetch(`${API_BASE}/documents?${queryParams(params)}`, {
+  return fetch(`/api/documents?${queryParams(params)}`, {
     cache: 'no-cache',
   }).then((res) => res.json())
 }
