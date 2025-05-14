@@ -233,7 +233,7 @@ export default function DocumentsClient({ currentPage }) {
         setLoading(false)
       })
       .catch(() => alert('Cannot load documents'))
-  }, [selectedSort, selectedTags])
+  }, [currentPage, selectedSort, selectedTags])
 
   return (
     <>
