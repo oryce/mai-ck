@@ -3,6 +3,8 @@ networks:
 
 volumes:
   pg_data:
+  ollama_data:
+  webui_data:
 
 services:
   backend:
@@ -28,7 +30,7 @@ services:
     restart: unless-stopped
 
     ports:
-      - 3000:3000 
+      - 3001:3001
     networks:
       - internal
 
@@ -52,3 +54,25 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+        - "11434:11434"
+    volumes:
+        - ollama_data:/root/.ollama
+    restart: unless-stopped
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    ports:
+        - "3000:8080"
+    environment:
+        - OLLAMA_API_BASE_URL=http://ollama:11434
+    volumes:
+        - webui_data:/app/backend/data
+    depends_on:
+        - ollama
+    restart: unless-stopped
