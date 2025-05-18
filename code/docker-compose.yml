@@ -1,10 +1,12 @@
 networks:
   internal:
+  keycloak_network:
 
 volumes:
   pg_data:
   ollama_data:
   webui_data:
+  keycloak_data:
 
 services:
   backend:
@@ -30,7 +32,7 @@ services:
     restart: unless-stopped
 
     ports:
-      - 3001:3001
+      - 3000:3000
     networks:
       - internal
 
@@ -48,12 +50,33 @@ services:
 
     networks:
       - internal
+      - keycloak_network
 
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       timeout: 5s
       retries: 5
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.1
+    container_name: keycloak
+    command: ["start-dev"]
+    env_file: config/keycloak/.env
+    environment:
+      PGDATA: /var/lib/postgresql/data
+      KEYCLOAK_ADMIN: admin        
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8080:8080"
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - keycloak_network
+      - internal
 
   ollama:
     image: ollama/ollama:latest
@@ -68,7 +91,7 @@ services:
     image: ghcr.io/open-webui/open-webui:main
     container_name: open-webui
     ports:
-        - "3000:8080"
+        - "3001:8080"
     environment:
         - OLLAMA_API_BASE_URL=http://ollama:11434
     volumes:
