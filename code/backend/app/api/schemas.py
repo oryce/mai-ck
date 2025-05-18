@@ -60,6 +60,14 @@ class DocumentDto(BaseModel):
             }
         }
 
+class PaginatedDocumentsResponse(BaseModel):
+    first: int = Field(..., description="Номер первой страницы")
+    last: int = Field(..., description="Номер последней страницы")
+    prev: int = Field(..., description="Номер предыдущей страницы (-1 если нет)")
+    next: int = Field(..., description="Номер следующей страницы (-1 если нет)")
+    pages: int = Field(..., description="Общее количество страниц")
+    data: list[DocumentDto] = Field(..., description="Список документов")
+
 
 class TaskStatusResponse(BaseModel):
     task_id: str = Field(description="ID асинхронно-выполняемой задачи", alias="taskId")
