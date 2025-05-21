@@ -23,6 +23,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      keycloak:
+        condition: service_started
 
   frontend:
     build:
@@ -35,6 +37,10 @@ services:
       - 3000:3000
     networks:
       - internal
+
+    depends_on:
+      keycloak:
+        condition: service_started
 
   postgres:
     image: postgres
@@ -61,7 +67,7 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:24.0.1
     container_name: keycloak
-    command: ["start-dev"]
+    command: ["start-dev", "--import-realm"]
     env_file: config/keycloak/.env
     environment:
       PGDATA: /var/lib/postgresql/data
@@ -71,6 +77,10 @@ services:
       - "8080:8080"
     volumes:
       - keycloak_data:/opt/keycloak/data
+      - type: bind
+        source: ./resources/realm-export.json
+        target: /opt/keycloak/data/import/realm-export.json
+        read_only: true
     depends_on:
       postgres:
         condition: service_healthy

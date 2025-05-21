@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from app.api.documents import router as document_router
 from app.api.tags import router as tags_router
 from app.api.tasks import router as tasks_router
+from app.api.login import router as login_router
 from app.config import Settings
 from app.db import init_db
 from app.db.models import create_tables
@@ -30,3 +31,4 @@ def get_settings():
 app.include_router(document_router)
 app.include_router(tasks_router)
 app.include_router(tags_router)
+app.include_router(login_router)
