@@ -31,7 +31,7 @@ class Settings(BaseSettings):
 
     @property
     def redirect_uri(self) -> str:
-        return f"{self.BASE_URL_BACKEND}%2Flogin%2Fcallback"
+        return f"{self.BASE_URL_BACKEND}/login/callback"
 
     @property
     def encoded_redirect_uri(self) -> str:

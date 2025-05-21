@@ -1,4 +1,6 @@
 import os
+from urllib.parse import urlencode
+
 import httpx
 from fastapi.responses import RedirectResponse
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -8,6 +10,7 @@ from app.api.login.auth_dep import get_current_user, get_keycloak_client
 from app.api.login.config import settings
 
 router = APIRouter(tags=["login"])
+
 
 @router.get("/auth/providers")
 async def get_providers():
@@ -27,6 +30,7 @@ async def get_providers():
 
 @router.get("/auth/signin")
 async def signin(callbackUrl: str = "/"):
+    print(settings.encoded_redirect_uri)
     return RedirectResponse(
         f"{settings.auth_url}"
         f"?client_id={settings.CLIENT_ID}"
@@ -60,7 +64,6 @@ async def login_callback(
         access_token = token_data.get("access_token")
         refresh_token = token_data.get("refresh_token")
         id_token = token_data.get("id_token")
-
         if not access_token:
             raise HTTPException(status_code=401, detail="Токен доступа не найден")
         if not refresh_token:
@@ -73,9 +76,8 @@ async def login_callback(
         user_id = user_info.get("sub")
         if not user_id:
             raise HTTPException(status_code=401, detail="ID пользователя не найден")
-
         # Установка cookie с токенами и редирект
-        response = RedirectResponse(url="/protected")
+        response = RedirectResponse(url="/documents")
         response.set_cookie(
             key="access_token",
             value=access_token,
@@ -108,3 +110,39 @@ async def login_callback(
     except Exception as e:
         print(str(e))
         raise HTTPException(status_code=401, detail="Ошибка авторизации")
+
+
+@router.get("/logout", include_in_schema=False)
+async def logout(request: Request):
+    id_token = request.cookies.get("id_token")
+    params = {
+        "client_id": settings.CLIENT_ID,
+        "post_logout_redirect_uri": settings.BASE_URL,
+    }
+    if id_token:
+        params["id_token_hint"] = id_token
+
+    keycloak_logout_url = f"{settings.logout_url}?{urlencode(params)}"
+    response = RedirectResponse(url=keycloak_logout_url)
+    response.delete_cookie(
+        key="access_token",
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        path="/",
+    )
+    response.delete_cookie(
+        key="id_token",
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        path="/",
+    )
+    response.delete_cookie(
+        key="refresh_token",
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        path="/",
+    )
+    return response
