@@ -33,10 +33,6 @@ class Settings(BaseSettings):
     def redirect_uri(self) -> str:
         return f"{self.BASE_URL_BACKEND}/login/callback"
 
-    @property
-    def encoded_redirect_uri(self) -> str:
-        return quote(self.redirect_uri)
-
     model_config = SettingsConfigDict(env_file=f".env")
 
 

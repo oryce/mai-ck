@@ -1,12 +1,10 @@
-import os
-from urllib.parse import urlencode
+from urllib.parse import urlencode, quote
 
-import httpx
 from fastapi.responses import RedirectResponse
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from app.api.login.keycloak_client import KeycloakClient
-from app.api.login.auth_dep import get_current_user, get_keycloak_client
+from app.api.login.auth_dep import get_keycloak_client
 from app.api.login.config import settings
 
 router = APIRouter(tags=["login"])
@@ -23,21 +21,24 @@ async def get_providers():
             "tokenUrl": settings.token_url,
             "clientId": settings.CLIENT_ID,
             "clientSecret": settings.CLIENT_SECRET,
-            "redirectUri": settings.encoded_redirect_uri
+            "redirectUri": quote(settings.redirect_uri)
         }]
     return {"providers": providers}
 
 
 @router.get("/auth/signin")
-async def signin(callbackUrl: str = "/"):
-    print(settings.encoded_redirect_uri)
-    return RedirectResponse(
-        f"{settings.auth_url}"
-        f"?client_id={settings.CLIENT_ID}"
-        f"&response_type=code"
-        f"&scope=openid"
-        f"&redirect_uri={settings.encoded_redirect_uri}"
-    )
+async def signin(callback_url ="/"):
+    print(callback_url)
+    query_params = {
+        "client_id": settings.CLIENT_ID,
+        "response_type": "code",
+        "scope": "openid",
+        "redirect_uri": settings.redirect_uri
+    }
+
+    redirect_url = f"{settings.auth_url}?{urlencode(query_params)}"
+    print(redirect_url)
+    return RedirectResponse(url=redirect_url)
 
 
 @router.get("/login/callback", include_in_schema=False)
