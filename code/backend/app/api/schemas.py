@@ -60,29 +60,36 @@ class DocumentDto(BaseModel):
             }
         }
 
+
 class PaginatedDocumentsResponse(BaseModel):
     first: int = Field(..., description="Номер первой страницы")
     last: int = Field(..., description="Номер последней страницы")
-    prev: int = Field(..., description="Номер предыдущей страницы (-1 если нет)")
-    next: int = Field(..., description="Номер следующей страницы (-1 если нет)")
+    prev: int = Field(...,
+                      description="Номер предыдущей страницы (-1 если нет)")
+    next: int = Field(...,
+                      description="Номер следующей страницы (-1 если нет)")
     pages: int = Field(..., description="Общее количество страниц")
     data: list[DocumentDto] = Field(..., description="Список документов")
 
 
 class TaskStatusResponse(BaseModel):
-    task_id: str = Field(description="ID асинхронно-выполняемой задачи", alias="taskId")
+    task_id: str = Field(
+        description="ID асинхронно-выполняемой задачи", alias="taskId")
     status: str = Field(description="uploading | processing | complete")
-    progress: int = Field(description="Прогресс выполнения задачи", ge=0, le=100)
+    progress: int = Field(
+        description="Прогресс выполнения задачи", ge=0, le=100)
 
 
 class TaskIdResponse(BaseModel):
-    task_id: str = Field(description="ID асинхронно-выполняемой задачи", alias="taskId")
+    task_id: str = Field(
+        description="ID асинхронно-выполняемой задачи", alias="taskId")
 
 
 class TagDto(BaseModel):
     id: int = Field(description="ID тега в системе")
     name: str = Field(description="Имя тега")
-    auto_tag: bool = Field(description="Задаётся ли тег автоматически", alias="autoTag")
+    auto_tag: bool = Field(
+        description="Задаётся ли тег автоматически", alias="autoTag")
 
     @staticmethod
     def from_model(model: db.TagModel) -> "TagDto":
