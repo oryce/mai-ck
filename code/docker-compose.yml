@@ -76,6 +76,13 @@ services:
       timeout: 10s
       retries: 5
 
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
 
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
