@@ -2,8 +2,8 @@ import clsx from 'clsx'
 import Image from 'next/image'
 import Link from 'next/link'
 
-import { Button } from '@/components/button'
 import { Heading, Subheading } from '@/components/heading'
+import LoginButton from './button'
 
 export default function Login() {
   return (
@@ -34,7 +34,7 @@ export default function Login() {
                 Организация и анализ PDF-документов
               </Subheading>
             </div>
-            <Button className="mt-8 w-20">Войти</Button>
+            <LoginButton />
           </main>
           <footer className="flex justify-center">
             <Link href="https://github.com/oryce/mai-ck" target="_blank">

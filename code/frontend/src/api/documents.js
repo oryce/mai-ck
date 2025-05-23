@@ -1,8 +1,14 @@
 const JSON_SERVER = process.env.NEXT_PUBLIC_JSON_SERVER
 
-import { queryParams } from '.'
+import { authHeader, queryParams } from '.'
 
-export const getDocuments = ({ page = 1, perPage = 10, sort, tags }) => {
+export const getDocuments = async ({
+  session,
+  page = 1,
+  perPage = 10,
+  sort,
+  tags,
+}) => {
   const params = JSON_SERVER
     ? {
         _page: page,
@@ -13,6 +19,7 @@ export const getDocuments = ({ page = 1, perPage = 10, sort, tags }) => {
     : { page, perPage, sort, tags: tags.join(',') }
 
   return fetch(`/api/documents?${queryParams(params)}`, {
+    headers: { ...authHeader(session) },
     cache: 'no-cache',
   }).then((res) => res.json())
 }

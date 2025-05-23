@@ -5,6 +5,7 @@ volumes:
   pg_data:
   ollama_data:
   webui_data:
+  keycloak_data:
 
 services:
   backend:
@@ -21,24 +22,30 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      keycloak:
+        condition: service_started
 
   frontend:
-    build:
-      context: frontend
-      args:
-        API_BASE: http://backend
+    build: frontend
     restart: unless-stopped
+
+    env_file: config/frontend/.env
 
     ports:
       - 3000:3000
     networks:
       - internal
 
+    depends_on:
+      keycloak:
+        condition: service_started
+
   postgres:
     image: postgres
     restart: unless-stopped
 
     env_file: config/postgres/.env
+
     environment:
       - PGDATA=/var/lib/postgresql/data
 
@@ -49,15 +56,40 @@ services:
       - pg_data:/var/lib/postgresql/data
       - ./config/postgres/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
 
+    networks:
+      - internal
+    ports:
+      - 5432:5432
+
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       timeout: 5s
       retries: 5
 
+  keycloak:
+    image: keycloak/keycloak
+    restart: unless-stopped
+
+    command: ["start-dev", "--import-realm"]
+
+    env_file: config/keycloak/.env
+
+    networks:
+      - internal
+    ports:
+      - "8080:8080"
+
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+      - ./config/keycloak/realm.json:/opt/keycloak/data/import/hive.json:ro
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   ollama:
     image: ollama/ollama:latest
-    container_name: ollama
     restart: unless-stopped
 
     ports:
@@ -86,7 +118,6 @@ services:
 
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
-    container_name: open-webui
     restart: unless-stopped
 
     ports:

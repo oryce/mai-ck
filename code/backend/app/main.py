@@ -1,14 +1,13 @@
 from contextlib import asynccontextmanager
-from functools import lru_cache
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, Security
 
-from app.api.documents import router as document_router
-from app.api.tags import router as tags_router
-from app.api.tasks import router as tasks_router
-from app.config import Settings
-from app.db import init_db
-from app.db.models import create_tables
+from .api.documents import router as document_router
+from .api.tags import router as tags_router
+from .api.tasks import router as tasks_router
+from .auth import oidc, oauth2
+from .db import init_db
+from .db.models import create_tables
 
 
 @asynccontextmanager
@@ -19,12 +18,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(lifespan=lifespan)
-
-
-@lru_cache
-def get_settings():
-    return Settings()
+app = FastAPI(lifespan=lifespan, dependencies=[Depends(oidc), Security(oauth2)])
 
 
 app.include_router(document_router)
