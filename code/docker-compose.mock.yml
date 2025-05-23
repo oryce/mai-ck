@@ -19,7 +19,6 @@ services:
     build:
       context: frontend
       args:
-        API_BASE: http://json-server:8000
         JSON_SERVER: 1
     restart: unless-stopped
     ports:

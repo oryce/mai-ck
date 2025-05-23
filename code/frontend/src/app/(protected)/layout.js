@@ -1,13 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { signOut, useSession } from 'next-auth/react'
 import Image from 'next/image'
+import { useState } from 'react'
 
 import {
   ArrowRightStartOnRectangleIcon,
   Cog6ToothIcon,
 } from '@heroicons/react/16/solid'
-import { MagnifyingGlassIcon, ArrowUpTrayIcon } from '@heroicons/react/20/solid'
+import { ArrowUpTrayIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 
 import { AvatarButton } from '@/components/avatar'
 import { Button } from '@/components/button'
@@ -28,6 +29,7 @@ import {
   DropdownMenu,
 } from '@/components/dropdown'
 import { Input, InputGroup } from '@/components/input'
+import { Link } from '@/components/link'
 import {
   Navbar,
   NavbarItem,
@@ -35,9 +37,10 @@ import {
   NavbarSpacer,
 } from '@/components/navbar'
 import { StackedLayout } from '@/components/stacked-layout'
-import { Link } from '@/components/link'
 
 function UserDropdownMenu() {
+  const { data: session } = useSession()
+
   return (
     <Dropdown>
       <DropdownButton
@@ -48,7 +51,7 @@ function UserDropdownMenu() {
       <DropdownMenu anchor="bottom start">
         <DropdownHeader>
           <span className="text-sm/7 font-semibold text-zinc-800 dark:text-white">
-            Иван Иванов
+            {session?.user?.name}
           </span>
         </DropdownHeader>
         <DropdownDivider />
@@ -58,7 +61,9 @@ function UserDropdownMenu() {
         </DropdownItem>
         <DropdownItem href="#">
           <ArrowRightStartOnRectangleIcon />
-          <DropdownLabel>Выйти</DropdownLabel>
+          <DropdownLabel onClick={() => signOut({ callbackUrl: '/login' })}>
+            Выйти
+          </DropdownLabel>
         </DropdownItem>
       </DropdownMenu>
     </Dropdown>

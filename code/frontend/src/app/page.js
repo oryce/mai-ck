@@ -1,6 +1,12 @@
+import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 
-export default function Home() {
-  // TODO: Check if the user is authenticated.
-  redirect('/login')
+export default async function Home() {
+  const session = await getServerSession()
+
+  if (session) {
+    redirect('/documents')
+  } else {
+    redirect('/login')
+  }
 }

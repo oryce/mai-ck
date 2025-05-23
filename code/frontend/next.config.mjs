@@ -3,8 +3,9 @@ const nextConfig = {
   output: 'standalone',
   rewrites: async () => [
     {
-      source: '/api/:path*',
-      destination: `${process.env.NEXT_PUBLIC_API_BASE}/:path*`,
+      // Match everything in `/api` except `/api/auth` (handled by NextAuth.js)
+      source: '/api/:path((?!auth).*)',
+      destination: `${process.env.API_BASE}/:path*`,
     },
   ],
 }

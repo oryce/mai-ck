@@ -9,3 +9,11 @@ export const queryParams = (params) => {
 
   return queryParams
 }
+
+export const authHeader = (session) => {
+  return session?.idToken
+    ? {
+        Authorization: `Bearer ${session.idToken}`,
+      }
+    : {}
+}

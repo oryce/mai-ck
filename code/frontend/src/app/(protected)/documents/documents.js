@@ -1,9 +1,7 @@
 'use client'
 
-import { clsx } from 'clsx'
-import { useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
 import * as Headless from '@headlessui/react'
+import { CalendarDaysIcon } from '@heroicons/react/16/solid'
 import {
   ArrowDownTrayIcon,
   ArrowTopRightOnSquareIcon,
@@ -12,7 +10,9 @@ import {
   FunnelIcon,
   PencilSquareIcon,
 } from '@heroicons/react/20/solid'
-import { CalendarDaysIcon } from '@heroicons/react/16/solid'
+import { clsx } from 'clsx'
+import { useSession } from 'next-auth/react'
+import { useEffect, useState } from 'react'
 
 import { getDocuments } from '@/api/documents'
 import { Badge, RandomBadge } from '@/components/badge'
@@ -24,7 +24,6 @@ import {
   ListboxOption,
   ListboxOptions,
 } from '@/components/listbox'
-import { Strong, Text } from '@/components/text'
 import {
   Pagination,
   PaginationGap,
@@ -33,6 +32,7 @@ import {
   PaginationPage,
   PaginationPrevious,
 } from '@/components/pagination'
+import { Strong, Text } from '@/components/text'
 
 function SortSelector({ selectedSort, setSelectedSort, ...props }) {
   const sorts = [
@@ -109,7 +109,7 @@ function Document({ document, ...props }) {
       )}
     >
       <div
-        className='h-[300px] rounded-t-md bg-[url(/pdf-placeholder.jpg)] bg-cover bg-center md:h-[270px]'
+        className="h-[300px] rounded-t-md bg-[url(/pdf-placeholder.jpg)] bg-cover bg-center md:h-[270px]"
         role="presentation"
       />
       <div className="p-2">
@@ -210,6 +210,7 @@ function Paginator({ currentPage, pageInfo, className, ...props }) {
 }
 
 export default function DocumentsClient({ currentPage }) {
+  const { data: session } = useSession()
   const [documents, setDocuments] = useState([])
   const [isLoading, setLoading] = useState(false)
   const [selectedSort, setSelectedSort] = useState('newest-first')
@@ -220,6 +221,7 @@ export default function DocumentsClient({ currentPage }) {
     setLoading(true)
 
     getDocuments({
+      session,
       page: currentPage,
       perPage: 10,
       sort: selectedSort,
