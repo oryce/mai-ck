@@ -119,8 +119,8 @@ class AccessTokenValidator(HTTPBearer):
 
 settings = Settings()
 
-jwks_url = f"{settings.oidc_issuer}/protocol/openid-connect/certs"
-oidc_url = f"{settings.oidc_issuer}/.well-known/openid-configuration"
+jwks_url = f"{settings.oidc_issuer_internal}/protocol/openid-connect/certs"
+oidc_url = f"{settings.oidc_issuer_internal}/.well-known/openid-configuration"
 
 # Don't know what `client_id` should be set to
 
@@ -134,5 +134,5 @@ oidc_url = f"{settings.oidc_issuer}/.well-known/openid-configuration"
 oidc = OpenIdConnect(openIdConnectUrl=oidc_url)
 
 oauth2 = AccessTokenValidator(
-    jwks_url=jwks_url, audience=settings.oidc_audience, issuer=settings.oidc_issuer
+    jwks_url=jwks_url, audience=settings.oidc_audience, issuer=settings.oidc_issuer_external
 )

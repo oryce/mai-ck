@@ -10,9 +10,6 @@ class Settings(BaseSettings):
     """
     pg_dsn: PostgresDsn
 
-    """
-    OpenID Connect issuer URI.
-    """
-    oidc_issuer: str
-    
+    oidc_issuer_internal: str
+    oidc_issuer_external: str
     oidc_audience: str

@@ -29,8 +29,6 @@ services:
     build: frontend
     restart: unless-stopped
 
-    env_file: config/frontend/.env
-
     ports:
       - 3000:3000
     networks:
@@ -48,9 +46,6 @@ services:
 
     environment:
       - PGDATA=/var/lib/postgresql/data
-
-    networks:
-      - internal
 
     volumes:
       - pg_data:/var/lib/postgresql/data
@@ -71,7 +66,7 @@ services:
     image: keycloak/keycloak
     restart: unless-stopped
 
-    command: ["start-dev", "--import-realm"]
+    command: ["start-dev", "--import-realm", "--hostname", "http://localhost:8080"]
 
     env_file: config/keycloak/.env
 

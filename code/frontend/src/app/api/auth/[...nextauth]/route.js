@@ -3,7 +3,7 @@ import KeycloakProvider from 'next-auth/providers/keycloak'
 
 async function refreshAccessToken(token) {
   try {
-    const url = `${process.env.KC_ISSUER}/protocol/openid-connect/token`
+    const url = `${process.env.KC_INTERNAL_URL}/realms/${process.env.KC_REALM}/protocol/openid-connect/token`
 
     const params = new URLSearchParams({
       client_id: process.env.KC_CLIENT_ID,
@@ -29,7 +29,7 @@ async function refreshAccessToken(token) {
       accessToken: refreshed.access_token,
       expiresAt: Date.now() + refreshed.expires_in * 1000,
       refreshToken: refreshed.refresh_token ?? token.refreshToken,
-      idToken: refreshed.id_token
+      idToken: refreshed.id_token,
     }
   } catch (error) {
     console.error('Error refreshing access token:', error)
@@ -43,12 +43,17 @@ async function refreshAccessToken(token) {
 export const authOptions = {
   providers: [
     KeycloakProvider({
+      wellKnown: undefined,
       clientId: process.env.KC_CLIENT_ID,
       clientSecret: process.env.KC_CLIENT_SECRET,
-      issuer: process.env.KC_ISSUER,
+      issuer: `${process.env.KC_EXTERNAL_URL}/realms/${process.env.KC_REALM}`,
       authorization: {
         params: { scope: 'openid profile offline_access' },
+        url: `${process.env.KC_EXTERNAL_URL}/realms/${process.env.KC_REALM}/protocol/openid-connect/auth`,
       },
+      jwks_endpoint: `${process.env.KC_INTERNAL_URL}/realms/${process.env.KC_REALM}/protocol/openid-connect/certs`,
+      token: `${process.env.KC_INTERNAL_URL}/realms/${process.env.KC_REALM}/protocol/openid-connect/token`,
+      userinfo: `${process.env.KC_INTERNAL_URL}/realms/${process.env.KC_REALM}/protocol/openid-connect/userinfo`,
     }),
   ],
   callbacks: {
