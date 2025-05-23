@@ -47,7 +47,10 @@ services:
     env_file: config/postgres/.env
 
     environment:
-      PGDATA: /var/lib/postgresql/data
+      - PGDATA=/var/lib/postgresql/data
+
+    networks:
+      - internal
 
     volumes:
       - pg_data:/var/lib/postgresql/data
@@ -87,22 +90,47 @@ services:
 
   ollama:
     image: ollama/ollama:latest
-    container_name: ollama
-    ports:
-        - "11434:11434"
-    volumes:
-        - ollama_data:/root/.ollama
     restart: unless-stopped
+
+    ports:
+      - 11431:11431
+    networks:
+      - internal
+
+    volumes:
+      - ollama_data:/root/.ollama
+
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - bash -c 'cat < /dev/null > /dev/tcp/localhost/11434'
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
 
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
-    container_name: open-webui
-    ports:
-        - "3001:8080"
-    environment:
-        - OLLAMA_API_BASE_URL=http://ollama:11434
-    volumes:
-        - webui_data:/app/backend/data
-    depends_on:
-        - ollama
     restart: unless-stopped
+
+    ports:
+      - "9000:8080"
+    networks:
+      - internal
+
+    environment:
+      - OLLAMA_API_BASE_URL=http://ollama:11434
+
+    volumes:
+      - webui_data:/app/backend/data
+
+    depends_on:
+      ollama:
+        condition: service_healthy
