@@ -2,7 +2,7 @@ const JSON_SERVER = process.env.NEXT_PUBLIC_JSON_SERVER
 
 import { authHeader, queryParams } from '.'
 
-export const getDocuments = async ({
+export const getDocuments = ({
   session,
   page = 1,
   perPage = 10,
