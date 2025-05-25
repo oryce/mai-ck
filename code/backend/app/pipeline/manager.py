@@ -17,9 +17,8 @@ def set_status(task_id: str, status: str):
 
 
 def run_task(document_path: str):
-    task_id = str(uuid.uuid4())
-    queue.enqueue(process_document, document_path)
-    return task_id
+    job = queue.enqueue(process_document, document_path)
+    return job
 
 
 def process_document(document_path, task_id):
