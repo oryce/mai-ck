@@ -17,12 +17,12 @@ def set_status(task_id: str, status: str):
 
 
 def run_task(document_path: str):
-    queue.enqueue(process_document, document_path)
-
-
-def process_document(document_path) -> str:
     task_id = str(uuid.uuid4())
+    queue.enqueue(process_document, document_path)
+    return task_id
 
+
+def process_document(document_path, task_id):
     set_status(task_id, "preprocessing")
 
     images = split_pdf_to_images(document_path)
@@ -40,5 +40,3 @@ def process_document(document_path) -> str:
     redis.hset(f"task:{task_id}", "type", type)
 
     set_status(task_id, "finished")
-
-    return task_id
