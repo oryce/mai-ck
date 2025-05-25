@@ -6,6 +6,7 @@ volumes:
   ollama_data:
   webui_data:
   keycloak_data:
+  redis_data:
 
 services:
   backend:
@@ -21,6 +22,8 @@ services:
 
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
       keycloak:
         condition: service_started
@@ -126,6 +129,19 @@ services:
     volumes:
       - webui_data:/app/backend/data
 
-    depends_on:
-      ollama:
-        condition: service_healthy
+  redis:
+    image: redis
+    restart: unless-stopped
+
+    command: ["redis-server", "--appendonly", "yes"]
+
+    ports:
+      - 6379:6379
+    networks:
+      - internal
+
+    volumes:
+      - redis_data:/data
+    
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
