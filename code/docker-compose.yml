@@ -69,7 +69,7 @@ services:
     image: keycloak/keycloak
     restart: unless-stopped
 
-    command: ["start-dev", "--import-realm", "--hostname", "http://localhost:8080"]
+    command: ["start", "--import-realm"]
 
     env_file: config/keycloak/.env
 
