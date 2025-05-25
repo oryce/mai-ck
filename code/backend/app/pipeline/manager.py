@@ -1,12 +1,12 @@
 import uuid
-
+from PIL import Image
 from redis import Redis
 from rq import Queue
 
-from .steps.ocr import ocr
-from .steps.signature_stamp import find_signature_stamp
-from .steps.split import split_pdf_to_images
-from .steps.type import get_document_type
+from steps.ocr import ocr
+from steps.signature_stamp import find_signature_stamp
+from steps.split import split_pdf_to_images
+from steps.type import get_document_type
 
 queue_name = "pipeline"
 
@@ -49,3 +49,11 @@ def process_document(task_id: str, document_path: str):
     )
 
     set_status(task_id, "finished")
+
+
+if __name__ == "__main__":
+    image_paths = ['page1.png']
+    images = [Image.open(p) for p in image_paths]
+
+    text = ocr(images)
+    print(text)

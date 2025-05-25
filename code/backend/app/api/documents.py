@@ -17,16 +17,16 @@ router = APIRouter(tags=["Работа с документами"])
     summary="Получить документы с фильтрацией и сортировкой",
 )
 async def get_documents(
-    page: int = Query(1, ge=1, description="Номер страницы"),
-    per_page: int = Query(
-        10, ge=1, le=100, alias="perPage", description="Документов на странице"
-    ),
-    sort: str = Query(
-        "newest-first",
-        regex="^(newest-first|oldest-first)$",
-        description="Сортировка: newest-first или oldest-first",
-    ),
-    tags: Optional[str] = Query(None, description="Фильтр по тегам (через запятую)"),
+        page: int = Query(1, ge=1, description="Номер страницы"),
+        per_page: int = Query(
+            10, ge=1, le=100, alias="perPage", description="Документов на странице"
+        ),
+        sort: str = Query(
+            "newest-first",
+            regex="^(newest-first|oldest-first)$",
+            description="Сортировка: newest-first или oldest-first",
+        ),
+        tags: Optional[str] = Query(None, description="Фильтр по тегам (через запятую)"),
 ):
     try:
         query = (
