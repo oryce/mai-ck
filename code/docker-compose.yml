@@ -6,7 +6,7 @@ volumes:
   ollama_data:
   webui_data:
   keycloak_data:
-  redis-data:
+  redis_data:
 
 services:
   backend:
@@ -22,6 +22,8 @@ services:
 
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
       keycloak:
         condition: service_started
@@ -67,7 +69,7 @@ services:
     image: keycloak/keycloak
     restart: unless-stopped
 
-    command: [ "start-dev", "--import-realm", "--hostname", "http://localhost:8080" ]
+    command: ["start-dev", "--import-realm", "--hostname", "http://localhost:8080"]
 
     env_file: config/keycloak/.env
 
@@ -110,7 +112,7 @@ services:
           devices:
             - driver: nvidia
               count: 1
-              capabilities: [ gpu ]
+              capabilities: [gpu]
 
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
@@ -129,12 +131,17 @@ services:
 
   redis:
     image: redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis-data:/data
-    command: [ "redis-server", "--appendonly", "yes" ]
+    restart: unless-stopped
 
-    depends_on:
-      ollama:
-        condition: service_healthy
+    command: ["redis-server", "--appendonly", "yes"]
+
+    ports:
+      - 6379:6379
+    networks:
+      - internal
+
+    volumes:
+      - redis_data:/data
+    
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
