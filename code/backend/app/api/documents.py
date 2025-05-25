@@ -1,14 +1,12 @@
 from typing import Optional
 
-from fastapi import APIRouter, BackgroundTasks, Query, HTTPException, status, Response
-
-from .schemas import DocumentDto, TaskIdResponse, PaginatedDocumentsResponse
-
-from app.db.models import DocumentModel, DocumentTagModel, UserModel, DocumentTypeModel
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, Response, status
+from peewee import IntegrityError, fn
 
 from app.db import db
+from app.db.models import DocumentModel, DocumentTagModel, DocumentTypeModel, UserModel
 
-from peewee import fn, IntegrityError
+from .schemas import DocumentDto, PaginatedDocumentsResponse, TaskIdResponse
 
 router = APIRouter(tags=["Работа с документами"])
 
@@ -28,8 +26,7 @@ async def get_documents(
         regex="^(newest-first|oldest-first)$",
         description="Сортировка: newest-first или oldest-first",
     ),
-    tags: Optional[str] = Query(
-        None, description="Фильтр по тегам (через запятую)"),
+    tags: Optional[str] = Query(None, description="Фильтр по тегам (через запятую)"),
 ):
     try:
         query = (
@@ -43,8 +40,7 @@ async def get_documents(
             try:
                 tag_ids = list(map(int, tags.split(",")))
             except ValueError:
-                raise HTTPException(
-                    status_code=400, detail="Некорректный формат тегов")
+                raise HTTPException(status_code=400, detail="Некорректный формат тегов")
 
             subquery = (
                 DocumentTagModel.select(DocumentTagModel.document)
@@ -67,8 +63,7 @@ async def get_documents(
         pages = (total + per_page - 1) // per_page if total > 0 else 0
 
         if page > pages and pages > 0:
-            raise HTTPException(
-                status_code=400, detail="Некорректный номер страницы")
+            raise HTTPException(status_code=400, detail="Некорректный номер страницы")
 
         documents = query.paginate(page, per_page)
 
@@ -96,8 +91,7 @@ async def get_documents(
     except HTTPException as he:
         raise he
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Ошибка сервера: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Ошибка сервера: {str(e)}")
 
 
 @router.get(
@@ -144,15 +138,13 @@ async def get_document(document_id: int):
     response_model=TaskIdResponse,
     summary="Загрузить документ",
 )
-async def upload_document(background_tasks: BackgroundTasks):
-    ...
+async def upload_document(background_tasks: BackgroundTasks): ...
 
 
 @router.patch(
     "/documents/{document_id}", response_model=DocumentDto, summary="Изменить документ"
 )
-async def update_document(document_id: int, document: DocumentDto):
-    ...
+async def update_document(document_id: int, document: DocumentDto): ...
 
 
 @router.delete(
