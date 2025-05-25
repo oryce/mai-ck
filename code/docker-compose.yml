@@ -4,7 +4,6 @@ networks:
 volumes:
   pg_data:
   ollama_data:
-  webui_data:
   keycloak_data:
   redis_data:
 
@@ -113,21 +112,6 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
-
-  open-webui:
-    image: ghcr.io/open-webui/open-webui:main
-    restart: unless-stopped
-
-    ports:
-      - "9000:8080"
-    networks:
-      - internal
-
-    environment:
-      - OLLAMA_API_BASE_URL=http://ollama:11434
-
-    volumes:
-      - webui_data:/app/backend/data
 
   redis:
     image: redis
