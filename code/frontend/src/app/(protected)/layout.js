@@ -124,7 +124,7 @@ export default function MainLayout({ children }) {
               <span className="max-lg:hidden">Найти</span>
             </NavbarItem>
             <SearchDialog open={searchOpen} setOpen={setSearchOpen} />
-            <NavbarItem>
+            <NavbarItem href="/documents/upload">
               <ArrowUpTrayIcon />
               <span className="max-lg:hidden">Загрузить</span>
             </NavbarItem>

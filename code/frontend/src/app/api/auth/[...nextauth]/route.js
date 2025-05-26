@@ -43,7 +43,6 @@ async function refreshAccessToken(token) {
 export const authOptions = {
   providers: [
     KeycloakProvider({
-      wellKnown: undefined,
       clientId: process.env.KC_CLIENT_ID,
       clientSecret: process.env.KC_CLIENT_SECRET,
       issuer: `${process.env.KC_EXTERNAL_URL}/realms/${process.env.KC_REALM}`,
