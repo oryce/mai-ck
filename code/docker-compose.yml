@@ -88,9 +88,10 @@ services:
   ollama:
     image: ollama/ollama:latest
     restart: unless-stopped
-
+    entrypoint: sh
+    command: -c "ollama serve & sleep 5 && ollama run llama2 && tail -f /dev/null"
     ports:
-      - 11431:11431
+      - 11434:11434
     networks:
       - internal
 

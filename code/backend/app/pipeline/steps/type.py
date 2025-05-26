@@ -11,11 +11,11 @@ def get_document_type(text: str) -> str:
 
     prompt = f"Определите тип этого документа на основе текста:\n{text}\nОтветьте только типом документа."
 
-    ollama_api_url = 'http://ollama:11431/v1/complete'
+    ollama_api_url = 'http://ollama:11434/api/generate'
 
     payload = {
         "prompt": prompt,
-        "model": "llama-2",
+        "model": "llama3.2"
     }
 
     response = requests.post(ollama_api_url, json=payload)
