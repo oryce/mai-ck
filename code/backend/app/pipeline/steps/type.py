@@ -1,3 +1,4 @@
+import os
 from typing import List
 
 import requests
@@ -23,7 +24,7 @@ def get_document_type(text: str, tag_names: List[str]) -> str:
 
     payload = {
         "prompt": prompt,
-        "model": "gemma3",
+        "model": os.getenv("LLM_MODEL"),
         "stream": False
     }
 
