@@ -94,8 +94,6 @@ services:
       - 11434:11434
     networks:
       - internal
-    environment:
-      - OLLAMA_MODEL_PATH=/root/.ollama/llama2
     volumes:
       - ollama_data:/root/.ollama
 
