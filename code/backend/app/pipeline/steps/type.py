@@ -1,11 +1,14 @@
+from typing import List
+
 import requests
 
 
-def get_document_type(text: str) -> str:
+def get_document_type(text: str, tag_ids: List[str]) -> str:
     """
     Отправляет оцифрованный текст документа в модель Ollama для классификации его типа.
 
     :param text: Оцифрованный текст документа.
+    :param tag_ids: Список тегов
     :return: Тип документа (например, "Договор", "Счет", "Накладная").
     """
 
@@ -14,6 +17,7 @@ def get_document_type(text: str) -> str:
               f"no additional words besides the document type.  "
               f"The type of the document is your entire response, "
               f"for example, 'purchase and sale agreement' and that's it, nothing more."
+              f"Choose one document type from the following list : {tag_ids}"
               f"Text of the document:\n{text}\n")
     ollama_api_url = 'http://ollama:11434/api/generate'
 

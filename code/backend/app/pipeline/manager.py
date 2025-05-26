@@ -1,12 +1,14 @@
 import uuid
-from PIL import Image
+from typing import List
+
 from redis import Redis
 from rq import Queue
 
-from app.pipeline.steps.ocr import ocr
-from app.pipeline.steps.signature_stamp import find_signature_stamp
-from app.pipeline.steps.split import split_pdf_to_images
-from app.pipeline.steps.type import get_document_type
+from .steps.ocr import ocr
+from .steps.signature_stamp import find_signature_stamp
+from .steps.split import split_pdf_to_images
+from .steps.type import get_document_type
+from ..db.models import TagModel
 
 queue_name = "pipeline"
 
@@ -22,13 +24,14 @@ def set_status(task_id: str, status: str):
 
 def run_task(document_path: str) -> str:
     task_id = str(uuid.uuid4())
+    tag_ids = [tag.id for tag in TagModel.select(TagModel.id)]
 
-    queue.enqueue(process_document, task_id, document_path)
+    queue.enqueue(process_document, task_id, document_path, tag_ids)
 
     return task_id
 
 
-def process_document(task_id: str, document_path: str):
+def process_document(task_id: str, document_path: str, tag_ids: List[str]):
     set_status(task_id, "preprocessing")
 
     images = split_pdf_to_images(document_path)
@@ -39,7 +42,7 @@ def process_document(task_id: str, document_path: str):
 
     text = ocr(images)
 
-    doc_type = get_document_type(text)
+    doc_type = get_document_type(text, tag_ids)
 
     redis.hset(
         f"task:{task_id}",
