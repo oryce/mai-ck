@@ -1,11 +1,13 @@
-from PIL.Image import Image
+import math
+
 import cv2
 import numpy as np
-import math
+from PIL.Image import Image
 
 
 def find_signature_stamp(images: list[Image]) -> tuple[bool, bool]:
     res = [False, False]
+
     for image_PIL in images:
         image = np.array(image_PIL)
         hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
@@ -38,12 +40,8 @@ def find_signature_stamp(images: list[Image]) -> tuple[bool, bool]:
 
         # Morphological operations to filter out printed text
         kernel = np.ones((3, 3), np.uint8)
-        dilated = cv2.dilate(
-            thresh, kernel, iterations=1
-        )  # Restore handwritten shapes
-        eroded = cv2.erode(
-            dilated, kernel, iterations=2
-        )  # Remove small printed text
+        dilated = cv2.dilate(thresh, kernel, iterations=1)  # Restore handwritten shapes
+        eroded = cv2.erode(dilated, kernel, iterations=2)  # Remove small printed text
 
         # Find external contours
         contours, _ = cv2.findContours(
@@ -71,9 +69,7 @@ def find_signature_stamp(images: list[Image]) -> tuple[bool, bool]:
                 # Calculate circularity
                 perimeter = cv2.arcLength(approx, True)
                 circularity = (
-                    (4 * math.pi * area) / (perimeter**2)
-                    if perimeter != 0
-                    else 0
+                    (4 * math.pi * area) / (perimeter**2) if perimeter != 0 else 0
                 )
 
                 # Calculate contour complexity (perimeter-to-area ratio)
@@ -84,21 +80,12 @@ def find_signature_stamp(images: list[Image]) -> tuple[bool, bool]:
                 cv2.drawContours(mask_contour, [approx], -1, 255, thickness=3)
                 distances = cv2.distanceTransform(mask_contour, cv2.DIST_L2, 3)
                 stroke_variation = (
-                    np.std(distances[distances > 0])
-                    if np.sum(distances > 0) > 0
-                    else 0
+                    np.std(distances[distances > 0]) if np.sum(distances > 0) > 0 else 0
                 )
 
-                if (
-                    circularity > 0.41
-                    and 0.9 < aspect_ratio < 1.3
-                    and complexity < 0.3
-                ):
+                if circularity > 0.41 and 0.9 < aspect_ratio < 1.3 and complexity < 0.3:
                     res[1] = True
-                elif (
-                    stroke_variation > 0.6
-                    and circularity < 0.6
-                    and complexity > 0.03
-                ):
+                elif stroke_variation > 0.6 and circularity < 0.6 and complexity > 0.03:
                     res[0] = True
-    return res
+
+    return res[0], res[1]
