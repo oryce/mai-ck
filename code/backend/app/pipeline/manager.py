@@ -24,14 +24,14 @@ def set_status(task_id: str, status: str):
 
 def run_task(document_path: str) -> str:
     task_id = str(uuid.uuid4())
-    tag_ids = [tag.id for tag in TagModel.select(TagModel.id)]
+    tag_names = [tag.name for tag in TagModel.select(TagModel.name)]
 
-    queue.enqueue(process_document, task_id, document_path, tag_ids)
+    queue.enqueue(process_document, task_id, document_path, tag_names)
 
     return task_id
 
 
-def process_document(task_id: str, document_path: str, tag_ids: List[str]):
+def process_document(task_id: str, document_path: str, tag_names: List[str]):
     set_status(task_id, "preprocessing")
 
     images = split_pdf_to_images(document_path)
@@ -42,7 +42,7 @@ def process_document(task_id: str, document_path: str, tag_ids: List[str]):
 
     text = ocr(images)
 
-    doc_type = get_document_type(text, tag_ids)
+    doc_type = get_document_type(text, tag_names)
 
     redis.hset(
         f"task:{task_id}",
