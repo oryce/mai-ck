@@ -9,16 +9,17 @@ def get_document_type(text: str) -> str:
     :return: Тип документа (например, "Договор", "Счет", "Накладная").
     """
 
-    prompt = (f"Отвечай на русском."
-              f"Определите тип этого документа на основе текста. Ответьте только типом документа,"
-              f"никаких дополнительных слов, помимо типа докмуента. "
-              f"Тип документа - это весшь ваш ответ, например, 'договор купли-продажи' и все, больше ничего."
-              f"Текст докмуента:\n{text}\n")
+    prompt = (f"Answer in Russian."
+              f"Determine the type of this document based on the text. Answer only with the document type, "
+              f"no additional words besides the document type.  "
+              f"The type of the document is your entire response, "
+              f"for example, 'purchase and sale agreement' and that's it, nothing more."
+              f"Text of the document:\n{text}\n")
     ollama_api_url = 'http://ollama:11434/api/generate'
 
     payload = {
         "prompt": prompt,
-        "model": "llama2",
+        "model": "gemma3",
         "stream": False
     }
 
