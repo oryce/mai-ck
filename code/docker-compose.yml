@@ -89,7 +89,7 @@ services:
     image: ollama/ollama:latest
     restart: unless-stopped
     entrypoint: sh
-    command: -c "ollama serve && ollama run gemma3 && tail -f /dev/null"
+    command: -c "ollama serve & sleep 5 && ollama run gemma3 && tail -f /dev/null"
     ports:
       - 11434:11434
     networks:
