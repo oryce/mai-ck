@@ -16,14 +16,6 @@ class BaseModel(Model):
         database = db
 
 
-class UserModel(BaseModel):
-    id = AutoField()
-    name = CharField(db_column="username")
-
-    class Meta:
-        db_table = "users"
-
-
 class DocumentTypeModel(BaseModel):
     id = AutoField()
     name = CharField(unique=True)
@@ -33,12 +25,12 @@ class DocumentTypeModel(BaseModel):
 
 
 class DocumentModel(BaseModel):
-    id = AutoField()
-    uploader = ForeignKeyField(UserModel, backref="documents")
+    id = CharField(max_length=128, unique=True, primary_key=True)
+    uploader_id = CharField(max_length=255)
     name = CharField(max_length=255)
     upload_date = DateField()
     creation_date = DateField()
-    type = ForeignKeyField(DocumentTypeModel, backref="documents")
+    type = ForeignKeyField(DocumentTypeModel, backref="documents", null=True)
 
     class Meta:
         db_table = "documents"
@@ -54,7 +46,7 @@ class TagModel(BaseModel):
 
 
 class DocumentTagModel(BaseModel):
-    document = ForeignKeyField(DocumentModel)
+    document = ForeignKeyField(DocumentModel, backref="tags")
     tag = ForeignKeyField(TagModel)
 
     class Meta:
@@ -65,7 +57,6 @@ class DocumentTagModel(BaseModel):
 def create_tables():
     db.create_tables(
         [
-            UserModel,
             DocumentTypeModel,
             DocumentModel,
             TagModel,

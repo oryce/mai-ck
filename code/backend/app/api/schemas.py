@@ -1,25 +1,28 @@
 from datetime import datetime
 from typing import Optional
 
-import app.db.models as db
 from pydantic import BaseModel, Field, field_validator
+
+import app.db.models as db
 
 
 class DocumentDto(BaseModel):
-    id: int = Field(
-        ..., description="Уникальный идентификатор документа в системе", example=1
+    id: str = Field(
+        ...,
+        description="Уникальный идентификатор документа в системе",
+        example="aabbccdd",
     )
-    uploader_id: int = Field(
+    uploader_id: str = Field(
         ...,
         description="Идентификатор пользователя, загрузившего документ",
-        example=123,
+        example="1234",
         alias="uploaderId",
     )
     name: str = Field(
         ...,
         description="Название документа",
         min_length=1,
-        max_length=30,
+        max_length=60,
         example="Презентация на 17.03.25",
     )
     upload_date: datetime = Field(
@@ -34,8 +37,9 @@ class DocumentDto(BaseModel):
         example="2025-09-30T08:00:00Z",
         alias="createDate",
     )
-    type_id: int = Field(
-        ..., description="Идентификатор типа документа", example=2, alias="typeId"
+    type: Optional[str] = Field(..., description="Тип документа", example=2)
+    tags: list[str] = Field(
+        ..., description="Теги документа", example=["Подпись", "Печать"]
     )
 
     @field_validator("upload_date", "create_date", mode="before")
@@ -51,12 +55,16 @@ class DocumentDto(BaseModel):
         from_attributes = True
         json_schema_extra = {
             "example": {
-                "id": 1,
-                "uploaderId": 123,
+                "id": "aabbccdd",
+                "uploaderId": "1234",
                 "name": "Презентация 228",
                 "uploadDate": "2025-10-01T12:00:00Z",
                 "createDate": "2025-09-30T08:00:00Z",
-                "typeId": 2,
+                "type": "Накладная",
+                "tags": [
+                    "Подпись",
+                    "Печать"
+                ]
             }
         }
 
@@ -64,32 +72,26 @@ class DocumentDto(BaseModel):
 class PaginatedDocumentsResponse(BaseModel):
     first: int = Field(..., description="Номер первой страницы")
     last: int = Field(..., description="Номер последней страницы")
-    prev: int = Field(...,
-                      description="Номер предыдущей страницы (-1 если нет)")
-    next: int = Field(...,
-                      description="Номер следующей страницы (-1 если нет)")
+    prev: int = Field(..., description="Номер предыдущей страницы (-1 если нет)")
+    next: int = Field(..., description="Номер следующей страницы (-1 если нет)")
     pages: int = Field(..., description="Общее количество страниц")
     data: list[DocumentDto] = Field(..., description="Список документов")
 
 
 class TaskStatusResponse(BaseModel):
-    task_id: str = Field(
-        description="ID асинхронно-выполняемой задачи", alias="taskId")
-    status: str = Field(description="uploading | processing | complete")
-    progress: int = Field(
-        description="Прогресс выполнения задачи", ge=0, le=100)
+    task_id: str = Field(description="ID асинхронно-выполняемой задачи", alias="taskId")
+    status: str = Field(description="preprocessing | processing | finished")
+    progress: int = Field(description="Прогресс выполнения задачи", ge=0, le=100)
 
 
 class TaskIdResponse(BaseModel):
-    task_id: str = Field(
-        description="ID асинхронно-выполняемой задачи", alias="taskId")
+    task_id: str = Field(description="ID асинхронно-выполняемой задачи", alias="taskId")
 
 
 class TagDto(BaseModel):
     id: int = Field(description="ID тега в системе")
     name: str = Field(description="Имя тега")
-    auto_tag: bool = Field(
-        description="Задаётся ли тег автоматически", alias="autoTag")
+    auto_tag: bool = Field(description="Задаётся ли тег автоматически", alias="autoTag")
 
     @staticmethod
     def from_model(model: db.TagModel) -> "TagDto":

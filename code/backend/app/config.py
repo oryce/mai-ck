@@ -17,4 +17,8 @@ class Settings(BaseSettings):
     oidc_audience: str
 
     redis_host: str
-    redis_password: Optional[str]
+    redis_port: Optional[int] = 6379
+    redis_password: Optional[str] = None
+
+    upload_dir: Optional[str] = 'uploads'
+    storage_dir: Optional[str] = 'storage'

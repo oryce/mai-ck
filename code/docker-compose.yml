@@ -6,6 +6,8 @@ volumes:
   ollama_data:
   keycloak_data:
   redis_data:
+  backend_upload:
+  backend_storage:
 
 services:
   backend:
@@ -19,6 +21,10 @@ services:
     networks:
       - internal
 
+    mount:
+      - backend_upload:/data/upload
+      - backend_storage:/data/storage
+
     depends_on:
       postgres:
         condition: service_healthy
@@ -26,6 +32,24 @@ services:
         condition: service_healthy
       keycloak:
         condition: service_started
+
+  worker:
+    build: worker
+    restart: unless-stopped
+
+    env_file: config/worker/.env
+
+    networks:
+      - internal
+
+    mount:
+      - backend_storage:/data/storage
+
+    depends_on:
+      redis:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
 
   frontend:
     build: frontend

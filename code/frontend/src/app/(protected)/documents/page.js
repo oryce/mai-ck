@@ -6,7 +6,7 @@ export default async function Documents({ searchParams }) {
 
   return (
     <>
-      <DocumentsClient initialPage={initialPage} />
+      <DocumentsClient currentPage={initialPage} />
     </>
   )
 }

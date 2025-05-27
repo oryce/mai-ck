@@ -1,14 +1,70 @@
-from typing import Optional
+import datetime
+import hashlib
+import os
+import tempfile
+from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Query, Response, UploadFile, status
-from peewee import fn
+from fastapi import (
+    APIRouter,
+    HTTPException,
+    Query,
+    Response,
+    Security,
+    UploadFile,
+    status,
+)
+from fastapi.concurrency import run_in_threadpool
+from peewee import JOIN, fn, prefetch
 
+from app.auth import AccessTokenCredentials, oauth2
+from app.config import Settings
 from app.db import db
-from app.db.models import DocumentModel, DocumentTagModel, DocumentTypeModel, UserModel
+from app.db.models import DocumentModel, DocumentTagModel, DocumentTypeModel, TagModel
+from app.task_queue import enqueue
 
 from .schemas import DocumentDto, PaginatedDocumentsResponse, TaskIdResponse
 
+settings = Settings()
+
 router = APIRouter(tags=["Работа с документами"])
+
+
+def build_query(sort: str, tags: str | None):
+    """
+    Common part of the SELECT that we can call from a thread-pool.
+    """
+    q = (
+        DocumentModel
+        # use LEFT OUTER so a missing type row never hides a document
+        .select().join(
+            DocumentTypeModel,
+            JOIN.LEFT_OUTER,
+            on=(DocumentModel.type == DocumentTypeModel.id),
+        )
+    )
+
+    # tag filtering (return docs that have *all* requested tags)
+    if tags:
+        try:
+            tag_ids = [int(t.strip()) for t in tags.split(",") if t.strip()]
+        except ValueError:
+            raise HTTPException(400, "Некорректный формат тегов")
+
+        subq = (
+            DocumentTagModel.select(DocumentTagModel.document_id)
+            .where(DocumentTagModel.tag_id.in_(tag_ids))
+            .group_by(DocumentTagModel.document_id)
+            .having(fn.COUNT(DocumentTagModel.tag_id.distinct()) == len(tag_ids))
+        )
+
+        q = q.where(DocumentModel.id.in_(subq))
+
+    order_field = (
+        DocumentModel.upload_date.desc()
+        if sort == "newest-first"
+        else DocumentModel.upload_date.asc()
+    )
+    return q.order_by(order_field)
 
 
 @router.get(
@@ -18,78 +74,57 @@ router = APIRouter(tags=["Работа с документами"])
 )
 async def get_documents(
     page: int = Query(1, ge=1, description="Номер страницы"),
-    per_page: int = Query(
-        10, ge=1, le=100, alias="perPage", description="Документов на странице"
-    ),
+    per_page: int = Query(10, ge=1, le=100, alias="perPage"),
     sort: str = Query(
         "newest-first",
-        regex="^(newest-first|oldest-first)$",
+        pattern="^(newest-first|oldest-first)$",
         description="Сортировка: newest-first или oldest-first",
     ),
-    tags: Optional[str] = Query(None, description="Фильтр по тегам (через запятую)"),
+    tags: str | None = Query(None, description="Фильтр по тегам (через запятую)"),
 ):
-    try:
-        query = (
-            DocumentModel.select(DocumentModel, UserModel, DocumentTypeModel)
-            .join(UserModel)
-            .switch(DocumentModel)
-            .join(DocumentTypeModel)
-        )
+    # build the query once – no DB work has happened yet
+    base_query = build_query(sort, tags)
 
-        if tags:
-            try:
-                tag_ids = list(map(int, tags.split(",")))
-            except ValueError:
-                raise HTTPException(status_code=400, detail="Некорректный формат тегов")
+    # 1) how many rows in total?
+    total: int = await run_in_threadpool(base_query.count)
+    pages = (total + per_page - 1) // per_page if total else 0
 
-            subquery = (
-                DocumentTagModel.select(DocumentTagModel.document)
-                .where(DocumentTagModel.tag_id.in_(tag_ids))
-                .group_by(DocumentTagModel.document)
-                .having(fn.COUNT(DocumentTagModel.tag_id.distinct()) == len(tag_ids))
+    if pages and page > pages:
+        raise HTTPException(400, "Некорректный номер страницы")
+
+    # 2) fetch the requested slice + its DocumentType in one round-trip
+    docs = await run_in_threadpool(
+        lambda: list(
+            prefetch(
+                base_query.paginate(page, per_page),
+                DocumentTypeModel,
+                DocumentTagModel.select().join(TagModel),
             )
-
-            query = query.where(DocumentModel.id.in_(subquery))
-
-        order_by = (
-            DocumentModel.upload_date.desc()
-            if sort == "newest-first"
-            else DocumentModel.upload_date.asc()
         )
-        query = query.order_by(order_by)
+    )
 
-        total = query.count()
-        pages = (total + per_page - 1) // per_page if total > 0 else 0
-
-        if page > pages and pages > 0:
-            raise HTTPException(status_code=400, detail="Некорректный номер страницы")
-
-        documents = query.paginate(page, per_page)
-
-        data = [
-            DocumentDto(
-                id=doc.id,
-                uploaderId=doc.uploader.id,
-                name=doc.name,
-                uploadDate=doc.upload_date,
-                createDate=doc.creation_date,
-                typeId=doc.type.id,
-            )
-            for doc in documents
-        ]
-
-        return PaginatedDocumentsResponse(
-            first=1,
-            last=pages if pages > 0 else 0,
-            prev=page - 1 if page > 1 else -1,
-            next=page + 1 if page < pages else -1,
-            pages=pages,
-            data=data,
+    # 3) convert to DTOs
+    data = [
+        DocumentDto(
+            id=d.id,
+            uploaderId=d.uploader_id,
+            name=d.name,
+            uploadDate=d.upload_date,
+            createDate=d.creation_date,
+            type=d.type.name if d.type else None,
+            tags=[link.tag.name for link in d.tags],
         )
-    except HTTPException:
-        raise
-    except Exception as err:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        for d in docs
+    ]
+
+    return PaginatedDocumentsResponse(
+        first=1,
+        last=pages or 0,
+        prev=page - 1 if page > 1 else -1,
+        next=page + 1 if page < pages else -1,
+        pages=pages,
+        data=data,
+    )
 
 
 @router.get(
@@ -100,8 +135,7 @@ async def get_documents(
 async def get_document(document_id: int):
     try:
         document = (
-            DocumentModel.select(DocumentModel, UserModel, DocumentTypeModel)
-            .join(UserModel)
+            DocumentModel.select(DocumentModel, DocumentTypeModel)
             .switch(DocumentModel)
             .join(DocumentTypeModel)
             .where(DocumentModel.id == document_id)
@@ -132,8 +166,44 @@ async def get_document(document_id: int):
     response_model=TaskIdResponse,
     summary="Загрузить документ",
 )
-async def upload_document(file: UploadFile) -> TaskIdResponse:
-    return TaskIdResponse(taskId="1234")
+async def upload_document(
+    file: UploadFile, oidc: Annotated[AccessTokenCredentials, Security(oauth2)]
+) -> TaskIdResponse:
+    # Записываем файл на диск, одновременно хешируя его. Мы хотим именовать файлы на диске
+    # их хешами, поэтому сначала записываем во временный файл, а затем переименовываем.
+    digest = hashlib.sha256()
+
+    tmp_file = tempfile.NamedTemporaryFile(
+        dir=settings.upload_dir, suffix=".tmp", delete=False
+    )
+
+    try:
+        while True:
+            chunk = await file.read(1024 * 1024)
+            if not chunk:
+                break
+            digest.update(chunk)
+            tmp_file.write(chunk)
+    finally:
+        tmp_file.close()
+
+    file_hash = digest.hexdigest()
+    file_path = os.path.join(settings.storage_dir, f"{file_hash}.pdf")
+
+    os.replace(tmp_file.name, file_path)
+
+    DocumentModel.create(
+        id=file_hash,
+        uploader_id=oidc.token["sub"],
+        name=file.filename,
+        upload_date=datetime.datetime.now(),
+        creation_date=datetime.datetime.now(),
+    )
+
+    # Создаём задачу на обработку. Воркеру нужен абсолютный путь.
+    task_id = enqueue(os.path.abspath(file_path))
+
+    return TaskIdResponse(taskId=task_id)
 
 
 @router.patch(

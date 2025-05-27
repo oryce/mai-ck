@@ -61,11 +61,14 @@ function UploadingFile({ file }) {
 
   const [status, setStatus] = useState('uploading')
   const [progress, setProgress] = useState(0)
-  const [taskId, setTaskId] = useState(null)
-  const [fetchInterval, setFetchInterval] = useState(-1)
+
+  const uploaded = useRef(false)
+  const taskId = useState(null)
+  const fetchInterval = useRef(-1)
 
   const translateStatus = (status) => {
     return {
+      enqueued: 'В очереди',
       uploading: 'Загрузка...',
       preprocessing: 'Оцифровка...',
       processing: 'Обработка...',
@@ -75,7 +78,7 @@ function UploadingFile({ file }) {
   }
 
   const updateTaskStatus = () => {
-    getTaskStatus({ session, taskId })
+    getTaskStatus({ session, taskId: taskId.value })
       .then(({ status, progress }) => {
         setStatus(status)
         setProgress(progress)
@@ -87,13 +90,22 @@ function UploadingFile({ file }) {
   }
 
   useEffect(() => {
+    if (uploaded.value) return
+
+    uploaded.value = true
+
     uploadDocument({
       session,
       file,
       uploadCb: (progress) =>
         setProgress(progress === -1 ? -1 : Math.ceil(progress * 100)),
     })
-      .then((res) => setTaskId(res.taskId))
+      .then((res) => {
+        taskId.value = res.taskId
+
+        updateTaskStatus()
+        fetchInterval.value = setInterval(updateTaskStatus, 1000)
+      })
       .catch((err) => {
         console.error('Upload failed', err)
         setStatus('error')
@@ -101,14 +113,9 @@ function UploadingFile({ file }) {
   }, [])
 
   useEffect(() => {
-    if (!taskId) return
-    setFetchInterval(setInterval(updateTaskStatus, 2500))
-  }, [taskId])
-
-  useEffect(() => {
     if (status === 'finished' || status === 'error') {
-      clearInterval(fetchInterval)
-      setFetchInterval(-1)
+      clearInterval(fetchInterval.value)
+      fetchInterval.value = -1
     }
   }, [status])
 

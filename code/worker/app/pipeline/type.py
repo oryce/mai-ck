@@ -3,20 +3,19 @@ import os
 from ollama import Client
 
 
-def get_document_type(text: str, tag_names: list[str]) -> str:
+def get_document_type(document_text: str, allowed_types: list[str], model: str) -> str:
     """
     Отправляет оцифрованный текст документа в модель Ollama для классификации его типа.
 
     :param text: Оцифрованный текст документа.
-    :param tag_names: Список тегов
-    :return: Тип документа (например, "Договор", "Счет", "Накладная").
+    :param allowed_types: Допустимые типы документа (например, "договор", "счет", "накладная").
     """
 
     system_prompt = f"""
 You are a document-classification assistant. You will be given the plain text output of an OCR engine. 
 Your sole task is to assign the document to **exactly one** of the following types:
 
-{"\n".join(map(lambda tag: f"* {tag}", tag_names))}
+{"\n".join(map(lambda ty: f"* {ty}", allowed_types))}
 
 **Requirements:**
 
@@ -27,16 +26,14 @@ Your sole task is to assign the document to **exactly one** of the following typ
 * If the document does not clearly match any of the types, reply with `Unknown`.
 """
 
-    client = Client("http://localhost:11434")
+    client = Client(os.getenv("OLLAMA_URL"))
 
     response = client.chat(
-        model=os.getenv("LLM_MODEL"),
+        model=model,
         messages=[
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": text},
+            {"role": "user", "content": document_text},
         ],
     )
 
-    print(response.message.content)
-
-    return response.message.content
+    return response.message.content.strip()
