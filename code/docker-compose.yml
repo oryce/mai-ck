@@ -37,6 +37,8 @@ services:
     build: worker
     restart: unless-stopped
 
+    command: ["run"]
+
     env_file: config/worker/.env
 
     networks:
