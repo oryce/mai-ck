@@ -22,6 +22,8 @@ Your sole task is to assign the document to **exactly one** of the following typ
 * Always choose one—and only one—type from the list above.
 * Reply **only** with the chosen type's name, matching it character-for-character (including capitalization),
   and **nothing else**.
+* If the document contains a phrase that includes one of the allowed types as a whole word (e.g., "Приказ" in
+ "Судебный приказ"), you must still reply with the base type ("Приказ").
 * Do not add any punctuation, comments, or extra words.
 * If the document does not clearly match any of the types, reply with `Unknown`.
 """
