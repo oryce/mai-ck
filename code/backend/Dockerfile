@@ -13,6 +13,15 @@ RUN apt-get update && apt-get install -y \
     poppler-utils \
     tesseract-ocr-rus \
     tesseract-ocr-eng 
+
+RUN apt-get update && \
+    apt-get install -y \
+    libgl1-mesa-glx \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN pip install --no-cache-dir -r requirements.txt
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"]
