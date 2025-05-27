@@ -1,7 +1,5 @@
 FROM node:22-alpine AS base
 
-ARG JSON_SERVER
-
 # Step 1. Install dependencies only when needed.
 FROM base AS deps
 
@@ -30,9 +28,6 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
-
-# Pass through configuration variables.
-ENV NEXT_PUBLIC_JSON_SERVER=$JSON_SERVER
 
 RUN npm run build
 

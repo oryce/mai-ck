@@ -1,7 +1,7 @@
 from typing import Optional
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, Response, status
-from peewee import IntegrityError, fn
+from fastapi import APIRouter, HTTPException, Query, Response, UploadFile, status
+from peewee import fn
 
 from app.db import db
 from app.db.models import DocumentModel, DocumentTagModel, DocumentTypeModel, UserModel
@@ -59,7 +59,6 @@ async def get_documents(
         query = query.order_by(order_by)
 
         total = query.count()
-        per_page = min(per_page, 100)
         pages = (total + per_page - 1) // per_page if total > 0 else 0
 
         if page > pages and pages > 0:
@@ -87,11 +86,10 @@ async def get_documents(
             pages=pages,
             data=data,
         )
-
-    except HTTPException as he:
-        raise he
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка сервера: {str(e)}")
+    except HTTPException:
+        raise
+    except Exception as err:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @router.get(
@@ -123,14 +121,10 @@ async def get_document(document_id: int):
             createDate=document.creation_date,
             typeId=document.type.id,
         )
-
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Ошибка сервера: {str(e)}",
-        )
+    except HTTPException:
+        raise
+    except Exception as err:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @router.post(
@@ -138,13 +132,14 @@ async def get_document(document_id: int):
     response_model=TaskIdResponse,
     summary="Загрузить документ",
 )
-async def upload_document(background_tasks: BackgroundTasks): ...
+async def upload_document(file: UploadFile) -> TaskIdResponse:
+    return TaskIdResponse(taskId="1234")
 
 
 @router.patch(
     "/documents/{document_id}", response_model=DocumentDto, summary="Изменить документ"
 )
-async def update_document(document_id: int, document: DocumentDto): ...
+async def update_document(document_id: int) -> DocumentDto: ...
 
 
 @router.delete(
@@ -154,7 +149,7 @@ async def update_document(document_id: int, document: DocumentDto): ...
 )
 async def delete_document(document_id: int):
     try:
-        with db.atomic() as transaction:
+        with db.atomic():
             DocumentTagModel.delete().where(
                 DocumentTagModel.document == document_id
             ).execute()
@@ -169,19 +164,7 @@ async def delete_document(document_id: int):
                 )
 
         return Response(status_code=status.HTTP_204_NO_CONTENT)
-
-    except HTTPException as e:
-        raise e
-    except IntegrityError as ie:
-        transaction.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Ошибка целостности данных: {str(ie)}",
-        )
-    except Exception as e:
-        if "transaction" in locals():
-            transaction.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Ошибка сервера: {str(e)}",
-        )
+    except HTTPException:
+        raise
+    except Exception as err:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
