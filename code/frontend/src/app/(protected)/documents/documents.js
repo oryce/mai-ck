@@ -66,8 +66,8 @@ function SortSelector({ selectedSort, setSelectedSort, ...props }) {
 
 function TagSelector({ selectedTags, setSelectedTags, ...props }) {
   const tags = [
-    { value: 'signature', name: 'Подпись' },
-    { value: 'stamp', name: 'Печать' },
+    { value: '1', name: 'Подпись' },
+    { value: '2', name: 'Печать' },
   ]
 
   return (
@@ -93,7 +93,7 @@ function DocumentSkeleton({ ...props }) {
 }
 
 function Document({ document, ...props }) {
-  const { name, createDate, type, tags } = document
+  const { id, name, createDate, type, tags } = document
 
   const formattedDate = new Intl.DateTimeFormat('ru-RU', {
     year: 'numeric',
@@ -109,8 +109,9 @@ function Document({ document, ...props }) {
       )}
     >
       <div
-        className="h-[300px] rounded-t-md bg-[url(/pdf-placeholder.jpg)] bg-cover bg-center md:h-[270px]"
+        className="h-[300px] rounded-t-md bg-cover bg-center md:h-[270px]"
         role="presentation"
+        style={{ backgroundImage: `url('/api/documents/${id}/preview')` }}
       />
       <div className="p-2">
         <Text>
@@ -129,7 +130,7 @@ function Document({ document, ...props }) {
           <Button className="w-full" outline>
             <PencilSquareIcon />
           </Button>
-          <Button className="w-full" outline>
+          <Button className="w-full" href={`/api/documents/${id}/file`} outline>
             <ArrowDownTrayIcon />
           </Button>
         </div>

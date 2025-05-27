@@ -3,6 +3,7 @@ from enum import Enum
 from typing import Generator
 
 from .ocr import ocr
+from .preview import create_preview
 from .signature_stamp import find_signature_stamp
 from .split import split_pdf_to_images
 from .type import get_document_type
@@ -26,6 +27,7 @@ def run(
 ) -> Generator[Status | Result, None, None]:
     yield Status.PREPROCESSING
     images = split_pdf_to_images(document_path)
+    create_preview(document_path, images)
     signature, stamp = find_signature_stamp(images)
 
     yield Status.PROCESSING

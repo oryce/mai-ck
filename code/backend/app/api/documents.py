@@ -14,6 +14,7 @@ from fastapi import (
     status,
 )
 from fastapi.concurrency import run_in_threadpool
+from fastapi.responses import FileResponse
 from peewee import JOIN, fn, prefetch
 
 from app.auth import AccessTokenCredentials, oauth2
@@ -238,3 +239,49 @@ async def delete_document(document_id: int):
         raise
     except Exception as err:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@router.get(
+    "/documents/{document_id}/file",
+    summary="Скачать PDF-документ",
+    response_class=FileResponse,
+)
+async def get_document_file(document_id: str):
+    """
+    Возвращает оригинальный PDF файл документа.
+    """
+    file_path = os.path.join(settings.storage_dir, f"{document_id}.pdf")
+
+    if not os.path.exists(file_path):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Файл не найден"
+        )
+
+    return FileResponse(
+        file_path,
+        media_type="application/pdf",
+        filename=f"{document_id}.pdf",
+    )
+
+
+@router.get(
+    "/documents/{document_id}/preview",
+    summary="Скачать превью документа",
+    response_class=FileResponse,
+)
+async def get_document_preview(document_id: str):
+    """
+    Возвращает превью (первую страницу) документа.
+    """
+    file_path = os.path.join(settings.storage_dir, f"{document_id}_preview.jpg")
+
+    if not os.path.exists(file_path):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Превью не найдено"
+        )
+
+    return FileResponse(
+        file_path,
+        media_type="image/jpeg",
+        filename=f"{document_id}_preview.jpg",
+    )
